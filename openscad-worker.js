@@ -15,25 +15,16 @@ onmessage = function(e) {
         
         postMessage({ status: "rendering", message: "Tengah buat 3D... Sabar jap ⏳" });
 
-        // Ini adalah "Resipi" SCAD (Boleh ganti dengan kod asal awak nanti)
         const scadCode = `
             text_string = "${e.data.text}";
             linear_extrude(2) text(text_string, size=10, halign="center");
         `;
         
         try {
-            // Tulis kod ke dalam sistem memori
             instance.FS.writeFile('/input.scad', scadCode);
-            
-            // Arahkan enjin untuk hasilkan fail STL
             instance.callMain(['/input.scad', '-o', '/output.stl']);
-            
-            // Baca fail STL yang dah siap
             const stlData = instance.FS.readFile('/output.stl');
-            
-            // Hantar hasil ke website
             postMessage({ status: "done", type: "STL_RESULT", data: stlData });
-            
         } catch (error) {
             postMessage({ status: "error", message: "Gagal generate 3D." });
         }
