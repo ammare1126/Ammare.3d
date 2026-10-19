@@ -1,139 +1,30 @@
-:root {
-    --primary: #FF1493; /* Pink Ammare */
-    --bg-light: #f4f4f9;
-    --text-light: #333;
-    --card-bg: #fff;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-light: #121212;
-        --text-light: #eee;
-        --card-bg: #1e1e1e;
-    }
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: var(--bg-light);
-    color: var(--text-light);
-    margin: 0;
-    padding: 0;
-    padding-bottom: 80px;
-}
-
-header {
-    background: var(--primary);
-    color: white;
-    padding: 20px;
-    text-align: center;
-}
-
-nav {
-    display: flex;
-    overflow-x: auto;
-    background: var(--card-bg);
-    padding: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-nav button {
-    flex: 1;
-    min-width: 80px;
-    border: none;
-    background: none;
-    color: var(--text-light);
-    font-weight: bold;
-    padding: 10px;
-    cursor: pointer;
-}
-
-.tab-content {
-    display: none;
-    padding: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-input, select {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0 20px 0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box;
-    background: var(--card-bg);
-    color: var(--text-light);
-}
-
-.warning {
-    color: red;
-    font-size: 0.9em;
-    margin-top: -15px;
-    display: none;
-}
-
-.primary-btn, .whatsapp-btn {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
-.primary-btn {
-    background: #333;
-    color: white;
-}
-
-.whatsapp-btn {
-    background: #25D366;
-    color: white;
-}
-
-.floating-wa {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #25D366;
-    color: white;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    text-decoration: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-
-.preview-container {
-    background: var(--card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 20px;
-    border: 1px dashed #ccc;
-}
-
-.gallery-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.gallery-item {
-    background: var(--card-bg);
-    padding: 20px;
-    text-align: center;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, Arial, sans-serif; background: #f5f4f8; color: #222; }
+header { background: #ff1493; color: #fff; text-align: center; padding: 24px 12px; }
+header h1 { margin: 0 0 8px; }
+nav { display: flex; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.1); position: sticky; top: 0; z-index: 10; }
+nav button { flex: 1; padding: 16px 4px; border: 0; background: none; font-weight: 700; cursor: pointer; }
+nav button:hover { background: #ffe0f0; }
+main { max-width: 640px; margin: 0 auto; padding: 24px 16px 60px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+label { display: block; margin: 16px 0 6px; }
+input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; background: #fff; }
+button { cursor: pointer; font-size: 15px; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.primary-btn, .whatsapp-btn { width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 6px; color: #fff; font-weight: 700; }
+.primary-btn { background: #ff1493; }
+.whatsapp-btn { background: #25d366; }
+.warning { color: #d32f2f; font-weight: 700; min-height: 1.2em; margin: 6px 0 0; }
+.preview-container { margin-top: 24px; padding: 16px; border: 2px dashed #ccc; border-radius: 8px; text-align: center; }
+#viewer { width: 100%; height: 280px; display: none; margin-bottom: 12px; background: #eee; border-radius: 6px; }
+#render-btn { padding: 8px 16px; }
+.customer-details, #cart { margin-top: 24px; }
+#cart-items { padding-left: 0; list-style: none; }
+#cart-items li { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid #ddd; }
+#cart-items li button { border: 0; background: none; color: #d32f2f; }
+.price-box { background: #fff; padding: 16px; border-radius: 8px; }
+.note { color: #b26a00; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.gallery-item { background: #fff; border: 1px dashed #aaa; padding: 40px 8px; text-align: center; border-radius: 8px; }
+details { background: #fff; padding: 12px; margin-bottom: 8px; border-radius: 6px; }
