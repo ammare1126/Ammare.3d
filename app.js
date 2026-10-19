@@ -1,5 +1,5 @@
 // ==========================================
-// ⚙️ SETTINGS SECTION (Easy for beginners to edit)
+// ⚙️ SETTINGS SECTION (Mudah untuk diedit)
 // ==========================================
 const CONFIG = {
     phone: "60178422719",
@@ -39,7 +39,7 @@ window.onload = () => {
     document.getElementById("display-bulk").innerText = CONFIG.priceBulk;
 };
 
-// Tab Switching
+// Tab Switching (Fungsi yang hilang sebelumnya)
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
@@ -83,7 +83,7 @@ function updateCartUI() {
     
     cart.forEach(item => totalQty += item.qty);
     
-    let pricePerItem = totalQty >= CONFIG.bulkThreshold ? CONFIG.bulkBulk : CONFIG.priceNormal;
+    let pricePerItem = totalQty >= CONFIG.bulkThreshold ? CONFIG.priceBulk : CONFIG.priceNormal;
     let totalPrice = 0;
 
     cart.forEach((item, index) => {
