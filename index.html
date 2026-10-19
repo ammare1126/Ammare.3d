@@ -120,7 +120,7 @@
     <script>
         let worker;
         if (window.Worker) {
-            worker = new Worker('wasm/scad-worker.js');
+            worker = new Worker('openscad-worker.js', { type: "module" });
             
             worker.onmessage = function(e) {
                 if (e.data.status === "loading" || e.data.status === "rendering") {
