@@ -1,6 +1,7 @@
 // openscad-worker.js  (letak di ROOT repo, sebelah app.js)
 // Dimuat oleh app.js sebagai module worker.
-import OpenSCAD from './wasm/openscad.js';
+// NOTA: guna dynamic import() (bukan `import ... from`) supaya kalau fail
+// openscad.js bermasalah, error sebenar boleh ditangkap dan dipaparkan.
 
 const FONTS = ['Lobster-Regular.ttf', 'Pacifico-Regular.ttf']; // dicari dalam folder wasm/
 const SCAD_URL = './wasm/keychain.scad';
@@ -20,6 +21,19 @@ async function fetchOk(path) {
 async function init() {
     try {
         postMessage({ status: 'rendering', message: '⏳ Loading engine 3D...' });
+
+        let mod;
+        try {
+            mod = await import('./wasm/openscad.js');
+        } catch (err) {
+            throw new Error('import wasm/openscad.js gagal: ' + (err && err.message ? err.message : err) +
+                ' | cek fail wujud di: ' + url('./wasm/openscad.js').href);
+        }
+        const OpenSCAD = mod.default || mod.OpenSCAD;
+        if (typeof OpenSCAD !== 'function') {
+            throw new Error('openscad.js tiada export yang sesuai. Export dijumpai: ' +
+                (Object.keys(mod).join(', ') || '(tiada)'));
+        }
 
         inst = await OpenSCAD({
             noInitialRun: true,
