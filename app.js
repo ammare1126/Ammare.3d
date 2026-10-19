@@ -56,7 +56,7 @@ function cleanText(t) {
 }
 
 /* ---------- Worker & 3D ---------- */
-const worker = new Worker('worker.js', { type: 'module' });
+   const worker = new Worker('openscad-worker.js', { type: 'module' });
 const loadingEl = $('loading-state');
 const renderBtn = $('render-btn');
 
