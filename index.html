@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ammare.3d - Custom Keychain 3D</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Load OpenSCAD Wasm -->
-    <script src="https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js"></script>
 </head>
 <body>
     <header>
-        <h1>Ammare.3d 🚀</h1>
+        <h1>Ammare.3d </h1>
         <p>Custom 3D Printed Keychains (Batu Pahat)</p>
     </header>
 
@@ -74,7 +72,6 @@
             <h2>Galeri & Feedback</h2>
             <p>Hasil R&D dan order customer yang dah siap!</p>
             <div class="gallery-grid" id="gallery-grid">
-                <!-- Add your images here via JS or HTML -->
                 <div class="gallery-item">Letak gambar 1.jpg kat sini</div>
                 <div class="gallery-item">Letak gambar 2.jpg kat sini</div>
             </div>
@@ -118,6 +115,39 @@
     </main>
 
     <a href="#" class="floating-wa" onclick="sendGeneralWhatsApp()">💬</a>
+
+    <!-- Sambungan Web Worker OpenSCAD -->
+    <script>
+        let worker;
+        if (window.Worker) {
+            worker = new Worker('wasm/scad-worker.js');
+            
+            worker.onmessage = function(e) {
+                if (e.data.status === "loading" || e.data.status === "rendering") {
+                    document.getElementById("loading-state").innerText = e.data.message;
+                } else if (e.data.status === "done" || e.data.type === "STL_RESULT") {
+                    document.getElementById("loading-state").innerText = "Preview 3D Berjaya Dijana! ✅";
+                } else if (e.data.status === "error") {
+                    document.getElementById("loading-state").innerText = "Ralat: " + e.data.message;
+                }
+            };
+        }
+
+        function render3D() {
+            document.getElementById("loading-state").innerText = "Tengah generate 3D... Jangan tutup screen ⏳";
+            const orderText = document.getElementById("order-text").value || "AMMARE";
+            
+            if (worker) {
+                worker.postMessage({
+                    action: "render",
+                    text: orderText,
+                    product: "keychain"
+                });
+            }
+        }
+    </script>
+    
+    <!-- Fail App Utama -->
     <script src="app.js"></script>
 </body>
 </html>
