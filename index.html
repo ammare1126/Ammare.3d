@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ammare.3d - Custom Keychain 3D</title>
     <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
 </head>
 <body>
     <header>
@@ -24,31 +32,28 @@
         <!-- TAB: TEMPAH -->
         <section id="tempah" class="tab-content active">
             <h2>Order Keychain Awak</h2>
-            <div class="product-selection">
-                <label>Pilih Produk:</label>
-                <select id="product-select"></select>
-            </div>
-            
-            <div class="custom-details">
-                <label>Nama / Teks (Max 8 huruf):</label>
-                <input type="text" id="order-text" placeholder="Cth: AMMARE">
-                
-                <label>Warna Tapak (Base):</label>
-                <select id="base-color" onchange="checkColors()"></select>
-                
-                <label>Warna Teks (Text):</label>
-                <select id="text-color" onchange="checkColors()"></select>
-                <p id="color-warning" class="warning"></p>
-                
-                <label>Kuantiti:</label>
-                <input type="number" id="order-qty" value="1" min="1">
-            </div>
 
-            <!-- 3D PREVIEW -->
+            <label>Pilih Produk:</label>
+            <select id="product-select"></select>
+
+            <label>Nama / Teks (Max 8 huruf):</label>
+            <input type="text" id="order-text" placeholder="Cth: AMMARE" maxlength="8">
+
+            <label>Warna Tapak (Base):</label>
+            <select id="base-color" onchange="checkColors()"></select>
+
+            <label>Warna Teks (Text):</label>
+            <select id="text-color" onchange="checkColors()"></select>
+            <p id="color-warning" class="warning"></p>
+
+            <label>Kuantiti:</label>
+            <input type="number" id="order-qty" value="1" min="1">
+
             <div class="preview-container">
                 <h3>Live 3D Preview (Beta)</h3>
                 <div id="loading-state">Tengah loading 3D engine... Sabar jap!</div>
-                <button id="render-btn" onclick="render3D()">Generate Preview</button>
+                <div id="viewer"></div>
+                <button id="render-btn" onclick="render3D()" disabled>Generate Preview</button>
             </div>
 
             <div class="customer-details">
@@ -79,11 +84,8 @@
         <!-- TAB: HARGA -->
         <section id="harga" class="tab-content">
             <h2>Senarai Harga</h2>
-            <div class="price-box">
-                <h3>Normal: RM <span id="display-price"></span> / pcs</h3>
-                <h3>Pukal (10+): RM <span id="display-bulk"></span> / pcs</h3>
-                <p class="note">⚠️ Nota: Order 10 keping ke atas perlukan deposit 50%.</p>
-            </div>
+            <div class="price-box" id="price-box"></div>
+            <p class="note">⚠️ Nota: Order 10 keping ke atas perlukan deposit 50%.</p>
         </section>
 
         <!-- TAB: CUSTOM -->
@@ -92,4 +94,18 @@
             <p>Isi form ni dan hantar reference gambar kat WhatsApp.</p>
             <input type="text" id="custom-idea" placeholder="Idea awak (Cth: Stand QR Code)">
             <input type="text" id="custom-budget" placeholder="Bajet anggaran (Cth: RM20)">
-            <button onclick="sendCustomToWhatsApp()" class="
+            <button onclick="sendCustomToWhatsApp()" class="whatsapp-btn">Hantar Idea di WhatsApp 💬</button>
+        </section>
+
+        <!-- TAB: FAQ -->
+        <section id="faq" class="tab-content">
+            <h2>FAQ</h2>
+            <details><summary>Berapa lama siap?</summary><p>Biasanya 2-4 hari bergantung pada jumlah order.</p></details>
+            <details><summary>Boleh COD kat mana?</summary><p>Kawasan Batu Pahat sahaja.</p></details>
+            <details><summary>Bayaran macam mana?</summary><p>Bayar masa COD. Order 10+ perlukan deposit 50%.</p></details>
+        </section>
+    </main>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
