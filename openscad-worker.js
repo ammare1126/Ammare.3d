@@ -15,7 +15,9 @@ onmessage = function(e) {
         
         postMessage({ status: "rendering", message: "Tengah buat 3D... Sabar jap ⏳" });
 
+// Resipi Web: Ditetapkan pada $fn=15 untuk kelajuan maksimum di telefon
         const scadCode = `
+            $fn = 15; 
             text_string = "${e.data.text}";
             linear_extrude(2) text(text_string, size=10, halign="center");
         `;
