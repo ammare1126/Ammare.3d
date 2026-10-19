@@ -1,81 +1,92 @@
-import OpenSCAD from 'https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js';
+// openscad-worker.js  (letak di ROOT repo, sebelah app.js)
+// Dimuat oleh app.js sebagai module worker.
+import OpenSCAD from './wasm/openscad.js';
 
-const SCAD_NAMA    = 'scad/keychain v1.scad';
-const SCAD_NOPLATE = 'scad/new! TEMPLATE NO PLATE.scad';
-const FONTS = ['CharlesWright-Bold.otf', 'Lobster-Regular.ttf']; // dalam folder scad/
+const FONTS = ['Lobster-Regular.ttf', 'Pacifico-Regular.ttf']; // dicari dalam folder wasm/
+const SCAD_URL = './wasm/keychain.scad';
 
-// Warm-up: pastikan enjin boleh load
-OpenSCAD({ noInitialRun: true }).then(() => {
-    postMessage({ status: "done", type: "READY", message: "3D Engine Ready! ✅" });
-}).catch(err => {
-    postMessage({ status: "error", message: "Gagal load 3D engine: " + err.message });
-});
+let inst = null;
+let scadSource = '';
 
-onmessage = async function (e) {
-    if (e.data.action !== "render") return;
-    postMessage({ status: "rendering", message: "Menjana rekaan " + e.data.product + "... Sabar jap ⏳" });
+// Path relatif kepada fail worker ini (selamat untuk GitHub Pages)
+const url = p => new URL(p, import.meta.url);
 
-    const logs = [];
+async function fetchOk(path) {
+    const r = await fetch(url(path));
+    if (!r.ok) throw new Error(`${path} gagal dimuat (HTTP ${r.status})`);
+    return r;
+}
+
+async function init() {
     try {
-        // Bersihkan teks supaya tak rosakkan kod SCAD
-        const teks = String(e.data.text).replace(/[^A-Za-z0-9 ]/g, '').slice(0, 8);
+        postMessage({ status: 'rendering', message: '⏳ Loading engine 3D...' });
 
-        let failScad = SCAD_NAMA;
-        let kodTambahan = `
-            teks_tempahan = "${teks}";
-            keychain_text = "${teks}";
-        `;
-        if (e.data.product === "Keychain No Plate") {
-            failScad = SCAD_NOPLATE;
-            kodTambahan = `
-                Mod_Baris = "1 Baris";
-                Teks_Satu_Baris = "${teks}";
-            `;
-        }
-
-        const response = await fetch(encodeURI(failScad));
-        if (!response.ok) throw new Error(`Fail "${failScad}" tak jumpa (${response.status})`);
-        const originalScad = await response.text();
-
-        const finalScadCode = `
-            ${originalScad}
-
-            // --- AUTO INJECT DARI BORANG WEBSITE ---
-            $fn = 15;
-            ${kodTambahan}
-        `;
-
-        // Instance baru setiap render (callMain tak boleh diulang)
-        const instance = await OpenSCAD({
+        inst = await OpenSCAD({
             noInitialRun: true,
-            print: t => logs.push(t),
-            printErr: t => logs.push(t)
+            print: m => console.log('[openscad]', m),
+            printErr: m => console.warn('[openscad]', m)
         });
 
-        // Muatkan font
-        try { instance.FS.mkdir('/fonts'); } catch (_) {}
+        // 1) Baca keychain.scad
+        scadSource = await (await fetchOk(SCAD_URL)).text();
+
+        // 2) Daftar fon ke sistem fail maya. Fon yang tiada dalam repo diabaikan.
+        const available = new Set();
         for (const f of FONTS) {
             try {
-                const r = await fetch(encodeURI('scad/' + f));
-                if (r.ok) {
-                    const buf = new Uint8Array(await r.arrayBuffer());
-                    instance.FS.writeFile('/fonts/' + f, buf);
-                    instance.FS.writeFile('/' + f, buf); // sebab SCAD guna: use <Lobster-Regular.ttf>
-                }
-            } catch (_) {}
+                const buf = new Uint8Array(await (await fetchOk('./wasm/' + f)).arrayBuffer());
+                inst.FS.writeFile('/' + f, buf);
+                available.add(f);
+            } catch (err) {
+                console.warn('[worker] fon tiada, dilangkau:', f);
+            }
         }
 
-        instance.FS.writeFile('/input.scad', finalScadCode);
-        const code = instance.callMain(['/input.scad', '-o', '/output.stl']);
-        if (code) throw new Error("OpenSCAD exit code " + code);
+        // 3) Buang baris `use <fon.ttf>;` untuk fon yang tiada (cth Pacifico)
+        scadSource = scadSource.replace(
+            /^\s*use\s*<([^>]+\.ttf)>\s*;?\s*$/gim,
+            (line, f) => (available.has(f) ? line : `// fon tiada: ${f}`)
+        );
 
-        const stlData = instance.FS.readFile('/output.stl');
-        postMessage({ status: "done", type: "STL_RESULT", data: stlData });
-    } catch (error) {
-        const detail = logs.filter(l => /error|warning/i.test(l)).slice(-3).join(' | ');
-        postMessage({
-            status: "error",
-            message: "Gagal render " + e.data.product + ": " + error.message + (detail ? " [" + detail + "]" : "")
-        });
+        postMessage({ type: 'READY', message: '✅ Engine siap. Tekan Generate Preview.' });
+    } catch (err) {
+        console.error('[worker] init gagal:', err);
+        postMessage({ status: 'error', message: 'Engine gagal load: ' + (err && err.message ? err.message : err) });
+    }
+}
+
+onmessage = e => {
+    const { action, text } = e.data || {};
+    if (action !== 'render') return;
+    if (!inst) {
+        postMessage({ status: 'error', message: 'Engine belum siap.' });
+        return;
+    }
+
+    postMessage({ status: 'rendering', message: '⏳ Rendering model...' });
+
+    try {
+        try { inst.FS.unlink('/out.stl'); } catch (_) {}
+        inst.FS.writeFile('/input.scad', scadSource);
+
+        try {
+            inst.callMain([
+                '/input.scad',
+                '--enable=manifold',
+                '-o', '/out.stl',
+                '-D', `keychain_text="${text}"`
+            ]);
+        } catch (err) {
+            // Emscripten kadang throw bila program tamat; semak sama ada STL wujud
+            console.warn('[worker] callMain:', err);
+        }
+
+        const out = inst.FS.readFile('/out.stl');
+        postMessage({ type: 'STL_RESULT', data: out }, [out.buffer]);
+    } catch (err) {
+        console.error('[worker] render gagal:', err);
+        postMessage({ status: 'error', message: 'Render gagal: ' + (err && err.message ? err.message : err) });
     }
 };
+
+init();
