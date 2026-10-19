@@ -1,32 +1,41 @@
-// Worker for OpenSCAD
-importScripts('https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js');
+// 1. Panggil 3D Engine (Import ES Module)
+import OpenSCAD from 'https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js';
 
 let instance = null;
 
-// Initialize the OpenSCAD instance
+// 2. Hidupkan enjin. Bila dah sedia, hantar mesej "READY" ke website
 OpenSCAD().then(loadedInstance => {
     instance = loadedInstance;
-    postMessage({ type: "READY" });
+    postMessage({ status: "done", type: "READY", message: "3D Engine Ready! ✅" });
 });
 
+// 3. Dengar arahan (Bila butang Generate Preview ditekan)
 onmessage = function(e) {
     if (e.data.action === "render" && instance) {
         
-        // This is where you pass your text variable into your SCAD code
+        postMessage({ status: "rendering", message: "Tengah buat 3D... Sabar jap ⏳" });
+
+        // Ini adalah "Resipi" SCAD (Boleh ganti dengan kod asal awak nanti)
         const scadCode = `
             text_string = "${e.data.text}";
             linear_extrude(2) text(text_string, size=10, halign="center");
         `;
         
-        // Write the code to the virtual filesystem
-        instance.FS.writeFile('/input.scad', scadCode);
-        
-        // Command line instruction to generate STL
-        instance.callMain(['/input.scad', '-o', '/output.stl']);
-        
-        // Read the result
-        const stlData = instance.FS.readFile('/output.stl');
-        
-        postMessage({ type: "STL_RESULT", data: stlData });
+        try {
+            // Tulis kod ke dalam sistem memori
+            instance.FS.writeFile('/input.scad', scadCode);
+            
+            // Arahkan enjin untuk hasilkan fail STL
+            instance.callMain(['/input.scad', '-o', '/output.stl']);
+            
+            // Baca fail STL yang dah siap
+            const stlData = instance.FS.readFile('/output.stl');
+            
+            // Hantar hasil ke website
+            postMessage({ status: "done", type: "STL_RESULT", data: stlData });
+            
+        } catch (error) {
+            postMessage({ status: "error", message: "Gagal generate 3D." });
+        }
     }
 }
