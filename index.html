@@ -116,10 +116,11 @@
 
     <a href="#" class="floating-wa" onclick="sendGeneralWhatsApp()">💬</a>
 
-    <!-- Sambungan Web Worker OpenSCAD -->
+<!-- Sambungan Web Worker OpenSCAD -->
     <script>
         let worker;
         if (window.Worker) {
+            // Jangan lupa kekalkan { type: "module" } ni
             worker = new Worker('openscad-worker.js', { type: "module" });
             
             worker.onmessage = function(e) {
@@ -137,17 +138,15 @@
             document.getElementById("loading-state").innerText = "Tengah generate 3D... Jangan tutup screen ⏳";
             const orderText = document.getElementById("order-text").value || "AMMARE";
             
+            // Baca apa yang pelanggan pilih dari kotak "Pilih Produk"
+            const chosenProduct = document.getElementById("product-select").value; 
+            
             if (worker) {
                 worker.postMessage({
                     action: "render",
                     text: orderText,
-                    product: "keychain"
+                    product: chosenProduct
                 });
             }
         }
     </script>
-    
-    <!-- Fail App Utama -->
-    <script src="app.js"></script>
-</body>
-</html>
