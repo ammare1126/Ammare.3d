@@ -125,35 +125,3 @@ function sendCustomToWhatsApp() {
     const msg = `Hai! Saya ada idea custom:\nIdea: ${idea}\nBajet: ${budget}\n\nSaya akan send gambar rujukan kejap lagi!`;
     window.open(`https://wa.me/${CONFIG.phone}?text=${encodeURIComponent(msg)}`, "_blank");
 }
-
-// ==========================================
-// 🛠️ OPENSCAD WEB WORKER LOGIC
-// ==========================================
-let worker;
-function initWorker() {
-    if (window.Worker) {
-        worker = new Worker('openscad-worker.js');
-        worker.onmessage = function(e) {
-            if (e.data.type === "READY") {
-                document.getElementById("loading-state").innerText = "3D Engine Ready! ✅";
-            } else if (e.data.type === "STL_RESULT") {
-                document.getElementById("loading-state").innerText = "Preview generated! (In development)";
-                // Here we would parse STL data to Three.js canvas. 
-                // Since this requires a massive 3D library (Three.js), 
-                // for Phase 1 we return a success status to show it worked.
-            }
-        };
-    }
-}
-initWorker();
-
-function render3D() {
-    document.getElementById("loading-state").innerText = "Tengah generate 3D... Jangan tutup screen.";
-    const text = document.getElementById("order-text").value || "AMMARE";
-    
-    // Send variables to the worker
-    worker.postMessage({
-        action: "render",
-        text: text
-    });
-}
