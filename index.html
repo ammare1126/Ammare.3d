@@ -8,7 +8,7 @@
 </head>
 <body>
     <header>
-        <h1>Ammare.3d </h1>
+        <h1>Ammare.3d 🚀</h1>
         <p>Custom 3D Printed Keychains (Batu Pahat)</p>
     </header>
 
@@ -48,7 +48,6 @@
             <div class="preview-container">
                 <h3>Live 3D Preview (Beta)</h3>
                 <div id="loading-state">Tengah loading 3D engine... Sabar jap!</div>
-                <!-- 3D Canvas will go here -->
                 <button id="render-btn" onclick="render3D()">Generate Preview</button>
             </div>
 
@@ -83,70 +82,14 @@
             <div class="price-box">
                 <h3>Normal: RM <span id="display-price"></span> / pcs</h3>
                 <h3>Pukal (10+): RM <span id="display-bulk"></span> / pcs</h3>
-                <p class="note">⚠️ Nota: Order 10 keping ke atas atau order custom perlukan deposit 50% sebelum saya mula print ya.</p>
+                <p class="note">⚠️ Nota: Order 10 keping ke atas perlukan deposit 50%.</p>
             </div>
         </section>
 
         <!-- TAB: CUSTOM -->
         <section id="custom" class="tab-content">
             <h2>Ada Idea Sendiri?</h2>
-            <p>Nak buat QR Stand? Signboard mini? Isi form ni dan hantar reference gambar kat WhatsApp.</p>
-            <input type="text" id="custom-idea" placeholder="Idea awak (Cth: Stand QR Code Kafe)">
+            <p>Isi form ni dan hantar reference gambar kat WhatsApp.</p>
+            <input type="text" id="custom-idea" placeholder="Idea awak (Cth: Stand QR Code)">
             <input type="text" id="custom-budget" placeholder="Bajet anggaran (Cth: RM20)">
-            <button onclick="sendCustomToWhatsApp()" class="whatsapp-btn">Minta Sebut Harga 💬</button>
-        </section>
-
-        <!-- TAB: FAQ -->
-        <section id="faq" class="tab-content">
-            <h2>Soalan Lazim (FAQ)</h2>
-            <details>
-                <summary>Boleh pos tak?</summary>
-                <p>Maaf, buat masa ni COD atau self-pickup area Batu Pahat sahaja.</p>
-            </details>
-            <details>
-                <summary>Cara bayaran?</summary>
-                <p>Boleh bayar cash masa COD atau scan DuitNow QR.</p>
-            </details>
-            <details>
-                <summary>Berapa lama siap?</summary>
-                <p>Bergantung pada queue mesin, selalunya 2-3 hari bekerja.</p>
-            </details>
-        </section>
-    </main>
-
-    <a href="#" class="floating-wa" onclick="sendGeneralWhatsApp()">💬</a>
-
-<!-- Sambungan Web Worker OpenSCAD -->
-    <script>
-        let worker;
-        if (window.Worker) {
-            // Jangan lupa kekalkan { type: "module" } ni
-            worker = new Worker('openscad-worker.js', { type: "module" });
-            
-            worker.onmessage = function(e) {
-                if (e.data.status === "loading" || e.data.status === "rendering") {
-                    document.getElementById("loading-state").innerText = e.data.message;
-                } else if (e.data.status === "done" || e.data.type === "STL_RESULT") {
-                    document.getElementById("loading-state").innerText = "Preview 3D Berjaya Dijana! ✅";
-                } else if (e.data.status === "error") {
-                    document.getElementById("loading-state").innerText = "Ralat: " + e.data.message;
-                }
-            };
-        }
-
-        function render3D() {
-            document.getElementById("loading-state").innerText = "Tengah generate 3D... Jangan tutup screen ⏳";
-            const orderText = document.getElementById("order-text").value || "AMMARE";
-            
-            // Baca apa yang pelanggan pilih dari kotak "Pilih Produk"
-            const chosenProduct = document.getElementById("product-select").value; 
-            
-            if (worker) {
-                worker.postMessage({
-                    action: "render",
-                    text: orderText,
-                    product: chosenProduct
-                });
-            }
-        }
-    </script>
+            <button onclick="sendCustomToWhatsApp()" class="
