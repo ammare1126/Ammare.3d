@@ -1,5 +1,5 @@
 // Worker for OpenSCAD
-importScripts('https://cdn.jsdelivr.net/npm/openscad-wasm@0.2.1/dist/openscad-wasm.min.js');
+importScripts('https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js');
 
 let instance = null;
 
