@@ -39,7 +39,7 @@ window.onload = () => {
     document.getElementById("display-bulk").innerText = CONFIG.priceBulk;
 };
 
-// Tab Switching (Fungsi yang hilang sebelumnya)
+// Tab Switching
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
