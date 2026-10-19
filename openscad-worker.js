@@ -87,43 +87,29 @@ async function init() {
     }
 }
 
-onmessage = e => {
-    const { action, text } = e.data || {};
-    if (action !== 'render') return;
-    if (!inst) {
-        postMessage({ status: 'error', message: 'Engine belum siap.' });
-        return;
-    }
-
-    postMessage({ status: 'rendering', message: '⏳ Rendering model...' });
+function renderPart(part, params) {
+    try { inst.FS.unlink('/out.stl'); } catch (_) {}
+    inst.FS.writeFile('/input.scad', scadSource);
     logLines = [];
+    const args = ['/input.scad', '-o', '/out.stl', '-D', `Pilihan_Cetak="${part}"`, '-D', '$fn=24'];
+    for (const [k, v] of Object.entries(params)) {
+        const val = typeof v === 'number' ? v : '"' + String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+        args.push('-D', `${k}=${val}`);
+    }
+    try { inst.callMain(args); } catch (err) { console.warn('[worker] callMain:', err); }
+    try { return inst.FS.readFile('/out.stl'); }
+    catch (_) { throw new Error('STL tak terhasil (' + part + '): ' + (logLines.slice(-6).join(' | ') || 'tiada mesej')); }
+}
 
-    // Elak teks merosakkan kod OpenSCAD (tanda petikan dan garis condong)
-    const safeText = String(text || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-
+onmessage = e => {
+    const { action, params } = e.data || {};
+    if (action !== 'render') return;
+    if (!inst) { postMessage({ status: 'error', message: 'Engine belum siap.' }); return; }
+    postMessage({ status: 'rendering', message: '⏳ Rendering model...' });
     try {
-        try { inst.FS.unlink('/out.stl'); } catch (_) {}
-        inst.FS.writeFile('/input.scad', scadSource);
-
-        try {
-            inst.callMain([
-                '/input.scad',
-                '-o', '/out.stl',
-                '-D', `keychain_text="${safeText}"`
-            ]);
-        } catch (err) {
-            // Emscripten kadang throw bila program tamat; semak sama ada STL wujud
-            console.warn('[worker] callMain:', err);
-        }
-
-        let out;
-        try {
-            out = inst.FS.readFile('/out.stl');
-        } catch (_) {
-            const detail = logLines.slice(-6).join(' | ') || '(tiada mesej dari OpenSCAD)';
-            throw new Error('STL tak terhasil. Mesej OpenSCAD: ' + detail);
-        }
-        postMessage({ type: 'STL_RESULT', data: out }, [out.buffer]);
+        const base = renderPart('Tapak Sahaja', params || {});
+        const text = renderPart('Teks Sahaja', params || {});
+        postMessage({ type: 'STL_RESULT', base, text }, [base.buffer, text.buffer]);
     } catch (err) {
         console.error('[worker] render gagal:', err);
         postMessage({ status: 'error', message: 'Render gagal: ' + msgOf(err) });
