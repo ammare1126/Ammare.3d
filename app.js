@@ -1,7 +1,7 @@
 /* ===== TETAPAN: ubah di sini sahaja ===== */
 const CONFIG = {
   whatsapp: "60178422719",
-  orderApi: "",     // ammare-order.ammarahimi02.workers.dev
+  orderApi: "https://ammare-order.ammarahimi02.workers.dev",
   price: 5,            // harga seunit (RM)
   priceBulk: 4,        // harga bulk (RM) - perlu disahkan
   bulkQty: 10,         // jumlah minimum untuk harga bulk (dan deposit)
