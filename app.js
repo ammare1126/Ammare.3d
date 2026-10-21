@@ -1,7 +1,7 @@
 /* ===== TETAPAN: ubah di sini sahaja ===== */
 const CONFIG = {
   whatsapp: "60178422719",
-  orderApi: "https://ammare-order.ammarahimi02.workers.dev",
+  orderApi: "https://ammare-order.ammarahimi02.workers.dev",     // URL Cloudflare Worker (isi lepas siap setup Telegram)
   price: 5,            // harga seunit (RM)
   priceBulk: 4,        // harga bulk (RM) - perlu disahkan
   bulkQty: 10,         // jumlah minimum untuk harga bulk (dan deposit)
@@ -19,6 +19,16 @@ const CONFIG = {
     { label: "Keychain No Plate", maxLen: 8 }
     // produk baru: salin satu baris di atas dan tukar label
   ],
+  // Tetapan lanjutan: key = nama pembolehubah dalam keychain.scad
+  params: [
+    { key: "letter_spacing", label: "Jarak huruf", min: 0.8, max: 1.5, step: 0.05, value: 1.0 },
+    { key: "border_size", label: "Lebar bucu tapak (mm)", min: 2, max: 6, step: 0.2, value: 3.4 },
+    { key: "base_thickness", label: "Tebal tapak (mm)", min: 1.2, max: 4, step: 0.2, value: 2.0 },
+    { key: "text_thickness", label: "Tebal teks (mm)", min: 0.8, max: 3, step: 0.2, value: 1.4 },
+    { key: "hole_size", label: "Saiz lubang ring (mm)", min: 3, max: 8, step: 0.5, value: 5 },
+    { key: "ring_move_x", label: "Jarak ring ke teks (mm)", min: 3, max: 14, step: 0.5, value: 7 },
+    { key: "ring_move_y", label: "Naik/turun ring (mm)", min: -8, max: 8, step: 0.5, value: -2 }
+  ],
   fonts: ["Lobster"],  // nama fon dalam keychain.scad (fail .ttf dalam folder wasm)
   gallery: []          // cth: ["k1.jpg", "k2.jpg"] (fail dalam folder gallery/)
 };
@@ -28,7 +38,8 @@ const $ = s => document.querySelector(s), RM = n => "RM" + n;
 const hex = n => CONFIG.colours.find(c => c.name === n).hex;
 let prod = CONFIG.products[0], sel = { base: "Hitam", text: "Putih" }, cart = [], ready = false;
 let cur = null, pending = "";
-const curKey = () => [$("#text").value.trim(), $("#font").value, $("#size").value].join("|");
+const P = {};
+const curKey = () => [$("#text").value.trim(), $("#font").value, $("#size").value, JSON.stringify(P)].join("|");
 
 /* tab */
 const tabs = document.querySelectorAll("#tabs button");
@@ -52,7 +63,9 @@ CONFIG.products.forEach((p, i) => {
 $("#text").maxLength = prod.maxLen;
 CONFIG.fonts.forEach(f => $("#font").add(new Option(f, f)));
 $("#fontwrap").hidden = CONFIG.fonts.length < 2;
-$("#size").oninput = () => $("#sizeout").textContent = $("#size").value;
+const fill = r => r.style.setProperty("--p", ((r.value - r.min) / (r.max - r.min)) * 100 + "%");
+$("#size").oninput = () => { $("#sizeout").textContent = $("#size").value; fill($("#size")); };
+fill($("#size"));
 
 /* warna (bulatan) - warna yang sama tak boleh dipilih */
 function drawSw() {
@@ -93,11 +106,50 @@ function show(b, t) {
   if (grp) S.remove(grp);
   const L = new THREE.STLLoader(), g = new THREE.Group(),
     mb = new THREE.Mesh(L.parse(b.buffer), M.base), mt = new THREE.Mesh(L.parse(t.buffer), M.text);
-  mt.position.z = CONFIG.baseThickness; g.add(mb, mt);
+  mt.position.z = P.base_thickness ?? CONFIG.baseThickness; g.add(mb, mt);
   const bx = new THREE.Box3().setFromObject(g), c = bx.getCenter(new THREE.Vector3()), z = bx.getSize(new THREE.Vector3());
   g.position.sub(c); S.add(g); grp = g;
   const d = Math.max(z.x / cam.aspect, z.y) * 1.9;
   cam.position.set(0, -d * 0.45, d); ctl.target.set(0, 0, 0); cam.lookAt(0, 0, 0);
+}
+
+/* tetapan lanjutan (slider dijana daripada CONFIG.params) */
+function drawAdv(reset) {
+  const box = $("#advbox"); box.innerHTML = "";
+  CONFIG.params.forEach(p => {
+    if (reset || P[p.key] === undefined) P[p.key] = p.value;
+    const l = document.createElement("label"), i = document.createElement("input"), o = document.createElement("output");
+    i.type = "range"; i.id = "p-" + p.key; l.htmlFor = i.id; l.append(p.label + ": ", o);
+    Object.assign(i, { min: p.min, max: p.max, step: p.step, value: P[p.key] }); o.textContent = P[p.key];
+    i.oninput = () => { P[p.key] = +i.value; o.textContent = i.value; fill(i); }; fill(i);
+    box.append(l, i);
+  });
+}
+$("#adv-reset").onclick = () => drawAdv(true);
+
+/* gambar preview (latar putih) dan satu fail STL gabungan untuk Telegram */
+function snap() {
+  const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height;
+  const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(cv, 0, 0);
+  return c.toDataURL("image/png");
+}
+function mergeSTL(b, t, dz) {
+  const L = new THREE.STLLoader(), gs = [L.parse(b.buffer), L.parse(t.buffer)];
+  gs[1].translate(0, 0, dz);
+  const n = gs.reduce((a, g) => a + g.attributes.position.count / 3, 0), out = new DataView(new ArrayBuffer(84 + n * 50));
+  out.setUint32(80, n, true);
+  let o = 84;
+  for (const g of gs) {
+    const p = g.attributes.position.array;
+    for (let i = 0; i < p.length; i += 9) {
+      const ax = p[i + 3] - p[i], ay = p[i + 4] - p[i + 1], az = p[i + 5] - p[i + 2],
+        bx = p[i + 6] - p[i], by = p[i + 7] - p[i + 1], bz = p[i + 8] - p[i + 2];
+      const nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx, l = Math.hypot(nx, ny, nz) || 1;
+      [nx / l, ny / l, nz / l, ...p.slice(i, i + 9)].forEach(v => { out.setFloat32(o, v, true); o += 4; });
+      o += 2;
+    }
+  }
+  return new Uint8Array(out.buffer);
 }
 
 /* worker OpenSCAD */
@@ -108,7 +160,8 @@ W.onmessage = e => {
   if (d.type === "READY") { ready = true; br.disabled = false; st.textContent = d.message; }
   else if (d.type === "STL_RESULT") {
     show(d.base, d.text); br.disabled = false; st.textContent = "✅ Siap. Seret untuk pusing.";
-    R.render(S, cam); cur = { key: pending, base: d.base, text: d.text, png: cv.toDataURL("image/png") };
+    R.render(S, cam); const png = snap();
+    cur = { key: pending, base: d.base, text: d.text, png, model: mergeSTL(d.base, d.text, P.base_thickness ?? CONFIG.baseThickness) };
   } else if (d.status) { st.textContent = d.message; if (d.status === "error") br.disabled = !ready; }
 };
 W.onerror = () => { st.textContent = "❌ Worker gagal dimuat. Cuba Ctrl+F5."; };
@@ -116,7 +169,7 @@ br.onclick = () => {
   const t = $("#text").value.trim();
   if (!t) { st.textContent = "Taip nama dulu."; return; }
   br.disabled = true; pending = curKey();
-  W.postMessage({ action: "render", params: { keychain_text: t, font_name: $("#font").value, text_size: +$("#size").value } });
+  W.postMessage({ action: "render", params: { keychain_text: t, font_name: $("#font").value, text_size: +$("#size").value, ...P } });
 };
 
 /* troli */
@@ -143,7 +196,7 @@ $("#btn-add").onclick = () => {
   if (!t) { hint("Taip nama / teks dulu."); return; }
   if (!cur || cur.key !== curKey()) { hint("Tekan 'Jana preview 3D' dulu untuk nama ini."); return; }
   if (cart.length >= 8) { hint("Maksimum 8 jenis keychain setiap order."); return; }
-  cart.push({ p: prod.label, t, b: sel.base, x: sel.text, q: Math.max(1, +$("#qty").value || 1), f: $("#font").value, s: +$("#size").value, stl: cur });
+  cart.push({ p: prod.label, t, b: sel.base, x: sel.text, q: Math.max(1, +$("#qty").value || 1), f: $("#font").value, s: +$("#size").value, pr: { ...P }, stl: cur });
   hint(""); drawCart();
 };
 
@@ -155,8 +208,7 @@ async function submitOrder(name, area) {
     const fd = new FormData();
     fd.append("order", JSON.stringify({ name, area, total: total(), qty: qty(), items: cart.map(({ stl, ...i }) => i) }));
     for (const [k, i] of cart.entries()) {
-      fd.append("base" + k, new Blob([i.stl.base]), `item${k + 1}-tapak.stl`);
-      fd.append("text" + k, new Blob([i.stl.text]), `item${k + 1}-teks.stl`);
+      fd.append("model" + k, new Blob([i.stl.model], { type: "model/stl" }), `item${k + 1}.stl`);
       fd.append("png" + k, await (await fetch(i.stl.png)).blob(), `item${k + 1}.png`);
     }
     const r = await fetch(CONFIG.orderApi, { method: "POST", body: fd });
@@ -186,4 +238,4 @@ $("#dnote").textContent = `Order ${CONFIG.bulkQty} pcs ke atas dan order custom:
 $("#grid").innerHTML = CONFIG.gallery.length ? "" : "<p class='mute'>Galeri akan datang.</p>";
 CONFIG.gallery.forEach(f => { const i = new Image(); i.src = "gallery/" + f; i.alt = "Keychain siap"; i.loading = "lazy"; $("#grid").appendChild(i); });
 
-drawSw(); paint(); drawCart(); resize();
+drawSw(); paint(); drawCart(); drawAdv(); resize();
