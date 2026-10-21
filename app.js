@@ -285,7 +285,5 @@ $("#cu-send").onclick = () => wa(`Salam, nak minta sebut harga custom:\nIdea: ${
 /* harga + galeri */
 $("#prices").innerHTML = `<tr><th>Kuantiti</th><th>Harga seunit</th></tr><tr><td>1 – ${CONFIG.bulkQty - 1}</td><td>${RM(CONFIG.price)}</td></tr><tr><td>${CONFIG.bulkQty} ke atas</td><td>${RM(CONFIG.priceBulk)}</td></tr>`;
 $("#dnote").textContent = `Order ${CONFIG.bulkQty} pcs ke atas dan order custom: deposit ${CONFIG.depositPct}%.`;
-$("#grid").innerHTML = CONFIG.gallery.length ? "" : "<p class='mute'>Galeri akan datang.</p>";
-CONFIG.gallery.forEach(f => { const i = new Image(); ... });
 
 drawSw(); paint(); drawCart(); setProduct(); resize();
