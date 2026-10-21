@@ -8,7 +8,7 @@ use <Pacifico-Regular.ttf>;
 Pilihan_Cetak = "Semua"; // ["Semua": Preview Penuh, "Tapak Sahaja": Tapak Kosong, "Teks Sahaja": Teks Nama]
 
 /* [Text] */
-keychain_text = "Ammare"; 
+keychain_text = "Nama"; 
 font_name = "Lobster"; // ["Lobster", "Pacifico", "DynaPuff"]
 text_size = 15; 
 letter_spacing = 1.0; 
