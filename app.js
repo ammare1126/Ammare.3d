@@ -15,12 +15,8 @@ const CONFIG = {
     { name: "Biru pekat", hex: "#0d2b6b" }, { name: "Hijau", hex: "#43a047" }
   ],
   products: [
-    { label: "Keychain Nama", maxLen: 12 },
-    { label: "Keychain No Plate", maxLen: 8 }
-    // produk baru: salin satu baris di atas dan tukar label
-  ],
-  // Tetapan lanjutan: key = nama pembolehubah dalam keychain.scad
-  params: [
+    { label: "Keychain Nama", type: "nama", scad: "keychain.scad", maxLen: 12, fonts: ["Lobster"],
+      params: [
     { key: "letter_spacing", label: "Jarak huruf", min: 0.8, max: 1.5, step: 0.05, value: 1.0 },
     { key: "border_size", label: "Lebar bucu tapak (mm)", min: 2, max: 6, step: 0.2, value: 3.4 },
     { key: "base_thickness", label: "Tebal tapak (mm)", min: 1.2, max: 4, step: 0.2, value: 2.0 },
@@ -28,8 +24,23 @@ const CONFIG = {
     { key: "hole_size", label: "Saiz lubang ring (mm)", min: 3, max: 8, step: 0.5, value: 5 },
     { key: "ring_move_x", label: "Jarak ring ke teks (mm)", min: 3, max: 14, step: 0.5, value: 7 },
     { key: "ring_move_y", label: "Naik/turun ring (mm)", min: -8, max: 8, step: 0.5, value: -2 }
+      ] },
+    { label: "Keychain No Plate", type: "plate", scad: "NO PLATE.scad", fonts: ["CharlesWright-Bold"],
+      params: [
+      { key: "Saiz_Teks", label: "Saiz huruf 2 baris", min: 4, max: 18, step: 0.5, value: 9.5 },
+      { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 15, step: 0.5, value: 7.5 },
+      { key: "Jarak_Baris", label: "Jarak antara baris (mm)", min: 5, max: 25, step: 0.5, value: 11.5 },
+      { key: "Jarak_Huruf", label: "Jarak huruf", min: 0.8, max: 1.5, step: 0.05, value: 1.0 },
+      { key: "Lebar_Plat_2_Baris", label: "Lebar plat 2 baris (mm)", min: 35, max: 80, step: 1, value: 50 },
+      { key: "Tinggi_Plat_2_Baris", label: "Tinggi plat 2 baris (mm)", min: 20, max: 50, step: 1, value: 32 },
+      { key: "Lebar_Plat_1_Baris", label: "Lebar plat 1 baris (mm)", min: 45, max: 90, step: 1, value: 65 },
+      { key: "Tinggi_Plat_1_Baris", label: "Tinggi plat 1 baris (mm)", min: 12, max: 35, step: 1, value: 20 },
+      { key: "Tebal_Tapak", label: "Tebal tapak (mm)", min: 1.2, max: 4, step: 0.2, value: 2.4 },
+      { key: "Tebal_Teks", label: "Tebal teks (mm)", min: 0.8, max: 3, step: 0.2, value: 1.4 },
+      { key: "Saiz_Lubang", label: "Saiz lubang (mm)", min: 2, max: 6, step: 0.2, value: 4 }
+      ] }
+    // produk baru: salin satu blok produk di atas (fail .scad letak dalam folder wasm)
   ],
-  fonts: ["Lobster"],  // nama fon dalam keychain.scad (fail .ttf dalam folder wasm)
   gallery: []          // cth: ["k1.jpg", "k2.jpg"] (fail dalam folder gallery/)
 };
 /* ===== TAMAT TETAPAN ===== */
@@ -39,7 +50,30 @@ const hex = n => CONFIG.colours.find(c => c.name === n).hex;
 let prod = CONFIG.products[0], sel = { base: "Hitam", text: "Putih" }, cart = [], ready = false;
 let cur = null, pending = "";
 const P = {};
-const curKey = () => [$("#text").value.trim(), $("#font").value, $("#size").value, JSON.stringify(P)].join("|");
+const curKey = () => prod.label + JSON.stringify(spec().params);
+const DUA = d => !["Design E", "Design F"].includes(d);
+function spec() {
+  if (prod.type !== "plate") {
+    const t = $("#text").value.trim();
+    return { scad: prod.scad, t, ok: !!t, dz: P.base_thickness ?? CONFIG.baseThickness,
+      params: { keychain_text: t, font_name: $("#font").value, text_size: +$("#size").value, ...P } };
+  }
+  const d = $("#pl-design").value, top = $("#pl-top").value.trim(), bot = $("#pl-bottom").value.trim(), one = $("#pl-one").value.trim();
+  return { scad: prod.scad, t: DUA(d) ? [top, bot].filter(Boolean).join(" / ") : one, ok: DUA(d) ? !!(top || bot) : !!one,
+    dz: P.Tebal_Tapak ?? 2.4,
+    params: { Bentuk_Plat: d, Teks_Atas: top, Teks_Bawah: bot, Teks_Satu_Baris: one, Nama_Fon: $("#font").value, Gaya_Teks: "Timbul", ...P } };
+}
+function syncLines() { const two = DUA($("#pl-design").value); $("#pl-two").hidden = !two; $("#pl-single").hidden = two; }
+function setProduct() {
+  const pl = prod.type === "plate";
+  $("#f-nama").hidden = pl; $("#f-plate").hidden = !pl;
+  if (prod.maxLen) $("#text").maxLength = prod.maxLen;
+  $("#font").innerHTML = ""; prod.fonts.forEach(f => $("#font").add(new Option(f, f)));
+  $("#fontwrap").hidden = prod.fonts.length < 2;
+  Object.keys(P).forEach(k => delete P[k]); drawAdv(true);
+  cur = null; syncLines();
+}
+$("#pl-design").onchange = syncLines;
 
 /* tab */
 const tabs = document.querySelectorAll("#tabs button");
@@ -55,14 +89,12 @@ CONFIG.products.forEach((p, i) => {
   b.type = "button"; b.className = "chip"; b.textContent = p.label;
   b.setAttribute("aria-pressed", i === 0);
   b.onclick = () => {
-    prod = p; $("#text").maxLength = p.maxLen;
+    prod = p; setProduct();
     document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b));
   };
   $("#prod").appendChild(b);
 });
 $("#text").maxLength = prod.maxLen;
-CONFIG.fonts.forEach(f => $("#font").add(new Option(f, f)));
-$("#fontwrap").hidden = CONFIG.fonts.length < 2;
 const fill = r => r.style.setProperty("--p", ((r.value - r.min) / (r.max - r.min)) * 100 + "%");
 $("#size").oninput = () => { $("#sizeout").textContent = $("#size").value; fill($("#size")); };
 fill($("#size"));
@@ -106,7 +138,7 @@ function show(b, t) {
   if (grp) S.remove(grp);
   const L = new THREE.STLLoader(), g = new THREE.Group(),
     mb = new THREE.Mesh(L.parse(b.buffer), M.base), mt = new THREE.Mesh(L.parse(t.buffer), M.text);
-  mt.position.z = P.base_thickness ?? CONFIG.baseThickness; g.add(mb, mt);
+  mt.position.z = spec().dz; g.add(mb, mt);
   const bx = new THREE.Box3().setFromObject(g), c = bx.getCenter(new THREE.Vector3()), z = bx.getSize(new THREE.Vector3());
   g.position.sub(c); S.add(g); grp = g;
   const d = Math.max(z.x / cam.aspect, z.y) * 1.9;
@@ -116,7 +148,7 @@ function show(b, t) {
 /* tetapan lanjutan (slider dijana daripada CONFIG.params) */
 function drawAdv(reset) {
   const box = $("#advbox"); box.innerHTML = "";
-  CONFIG.params.forEach(p => {
+  prod.params.forEach(p => {
     if (reset || P[p.key] === undefined) P[p.key] = p.value;
     const l = document.createElement("label"), i = document.createElement("input"), o = document.createElement("output");
     i.type = "range"; i.id = "p-" + p.key; l.htmlFor = i.id; l.append(p.label + ": ", o);
@@ -161,15 +193,15 @@ W.onmessage = e => {
   else if (d.type === "STL_RESULT") {
     show(d.base, d.text); br.disabled = false; st.textContent = "✅ Siap. Seret untuk pusing.";
     R.render(S, cam); const png = snap();
-    cur = { key: pending, base: d.base, text: d.text, png, model: mergeSTL(d.base, d.text, P.base_thickness ?? CONFIG.baseThickness) };
+    cur = { key: pending, base: d.base, text: d.text, png, model: mergeSTL(d.base, d.text, spec().dz) };
   } else if (d.status) { st.textContent = d.message; if (d.status === "error") br.disabled = !ready; }
 };
 W.onerror = () => { st.textContent = "❌ Worker gagal dimuat. Cuba Ctrl+F5."; };
 br.onclick = () => {
-  const t = $("#text").value.trim();
-  if (!t) { st.textContent = "Taip nama dulu."; return; }
+  const s = spec();
+  if (!s.ok) { st.textContent = "Taip nama / teks dulu."; return; }
   br.disabled = true; pending = curKey();
-  W.postMessage({ action: "render", params: { keychain_text: t, font_name: $("#font").value, text_size: +$("#size").value, ...P } });
+  W.postMessage({ action: "render", scad: s.scad, params: s.params });
 };
 
 /* troli */
@@ -192,11 +224,11 @@ function drawCart() {
   $("#btn-send").disabled = !cart.length;
 }
 $("#btn-add").onclick = () => {
-  const t = $("#text").value.trim();
-  if (!t) { hint("Taip nama / teks dulu."); return; }
+  const s = spec(), t = s.t;
+  if (!s.ok) { hint("Taip nama / teks dulu."); return; }
   if (!cur || cur.key !== curKey()) { hint("Tekan 'Jana preview 3D' dulu untuk nama ini."); return; }
   if (cart.length >= 8) { hint("Maksimum 8 jenis keychain setiap order."); return; }
-  cart.push({ p: prod.label, t, b: sel.base, x: sel.text, q: Math.max(1, +$("#qty").value || 1), f: $("#font").value, s: +$("#size").value, pr: { ...P }, stl: cur });
+  cart.push({ p: prod.label + (prod.type === "plate" ? " " + s.params.Bentuk_Plat : ""), t, b: sel.base, x: sel.text, q: Math.max(1, +$("#qty").value || 1), f: $("#font").value, s: s.params.text_size ?? s.params.Saiz_Teks, pr: { ...P }, stl: cur });
   hint(""); drawCart();
 };
 
@@ -238,4 +270,4 @@ $("#dnote").textContent = `Order ${CONFIG.bulkQty} pcs ke atas dan order custom:
 $("#grid").innerHTML = CONFIG.gallery.length ? "" : "<p class='mute'>Galeri akan datang.</p>";
 CONFIG.gallery.forEach(f => { const i = new Image(); i.src = "gallery/" + f; i.alt = "Keychain siap"; i.loading = "lazy"; $("#grid").appendChild(i); });
 
-drawSw(); paint(); drawCart(); drawAdv(); resize();
+drawSw(); paint(); drawCart(); setProduct(); resize();
