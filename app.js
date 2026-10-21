@@ -160,10 +160,11 @@ function drawAdv(reset) {
 $("#adv-reset").onclick = () => drawAdv(true);
 
 /* gambar preview (latar putih) dan satu fail STL gabungan untuk Telegram */
+// Salin kanvas WebGL ke kanvas 2D SEGERA (sebelum buffer dikosongkan), kemudian toBlob (async)
 function snap() {
   const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height;
   const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(cv, 0, 0);
-  return c.toDataURL("image/png");
+  return new Promise(res => c.toBlob(res, "image/jpeg", 0.92));   // Promise<Blob>
 }
 function mergeSTL(b, t, dz) {
   const L = new THREE.STLLoader(), gs = [L.parse(b.buffer), L.parse(t.buffer)];
@@ -191,9 +192,15 @@ W.onmessage = e => {
   const d = e.data;
   if (d.type === "READY") { ready = true; br.disabled = false; st.textContent = d.message; }
   else if (d.type === "STL_RESULT") {
-    show(d.base, d.text); br.disabled = false; st.textContent = "✅ Siap. Seret untuk pusing.";
-    R.render(S, cam); const png = snap();
-    cur = { key: pending, base: d.base, text: d.text, png, model: mergeSTL(d.base, d.text, spec().dz) };
+    show(d.base, d.text); R.render(S, cam);
+    const shot = snap(), model = mergeSTL(d.base, d.text, spec().dz), key = pending;
+    st.textContent = "⏳ Menyediakan gambar…";
+    shot.then(png => {
+      br.disabled = false;
+      if (!png) { st.textContent = "❌ Gambar gagal ditangkap. Cuba jana semula."; return; }
+      cur = { key, base: d.base, text: d.text, png, model };
+      st.textContent = "✅ Siap. Seret untuk pusing.";
+    });
   } else if (d.status) { st.textContent = d.message; if (d.status === "error") br.disabled = !ready; }
 };
 W.onerror = () => { st.textContent = "❌ Worker gagal dimuat. Cuba Ctrl+F5."; };
@@ -241,11 +248,12 @@ async function submitOrder(name, area) {
     fd.append("order", JSON.stringify({ name, area, total: total(), qty: qty(), items: cart.map(({ stl, ...i }) => i) }));
     for (const [k, i] of cart.entries()) {
       fd.append("model" + k, new Blob([i.stl.model], { type: "model/stl" }), `item${k + 1}.stl`);
-      fd.append("png" + k, await (await fetch(i.stl.png)).blob(), `item${k + 1}.png`);
+      fd.append("png" + k, i.stl.png, `item${k + 1}.jpg`);
     }
     const r = await fetch(CONFIG.orderApi, { method: "POST", body: fd });
     if (!r.ok) throw new Error(r.status);
-    hint("✅ Order diterima."); return (await r.json()).id;
+    const j = await r.json();
+    hint(j.failed ? "⚠️ Order diterima, tapi sebahagian fail gagal sampai. Teruskan di WhatsApp." : "✅ Order diterima."); return j.id;
   } catch (e) { hint("Order tak sampai ke sistem. Teruskan di WhatsApp sahaja."); return ""; }
   finally { btn.disabled = !cart.length; }
 }
