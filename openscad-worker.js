@@ -3,11 +3,10 @@
 // Setiap bahagian (tapak / teks) dirender dengan instance OpenSCAD BARU,
 // sebab callMain tak boleh dipanggil dua kali pada instance yang sama.
 
-const FONTS = ['Lobster-Regular.ttf', 'Pacifico-Regular.ttf']; // dicari dalam folder wasm/
-const SCAD_URL = './wasm/keychain.scad';
+const FONTS = ['Lobster-Regular.ttf', 'Pacifico-Regular.ttf', 'CharlesWright-Bold.otf']; // dicari dalam folder wasm/
+const scadCache = {};   // nama fail .scad -> kod (dimuat bila perlu)
 
 let mod = null;
-let scadSource = '';
 let fontBufs = {};        // nama fail -> Uint8Array
 let warm = null;          // instance pertama, disediakan masa init
 let logLines = [];
@@ -41,6 +40,13 @@ async function freshInstance() {
     return i;
 }
 
+async function prepScad(name) {
+    let src = await (await fetchOk('./wasm/' + name)).text();
+    // buang `use <fon>` untuk fon yang tiada, kemudian daftar semua fon yang ada
+    src = src.replace(/^\s*use\s*<([^>]+\.(?:ttf|otf))>\s*;?\s*$/gim, (line, f) => (fontBufs[f] ? line : `// fon tiada: ${f}`));
+    return Object.keys(fontBufs).map(f => `use <${f}>;\n`).join('') + src;
+}
+
 async function init() {
     try {
         postMessage({ status: 'rendering', message: '⏳ Loading engine 3D...' });
@@ -53,8 +59,6 @@ async function init() {
             throw new Error('openscad.js tiada createOpenSCAD. Export: ' + Object.keys(mod).join(', '));
         }
 
-        scadSource = await (await fetchOk(SCAD_URL)).text();
-
         for (const f of FONTS) {
             try {
                 fontBufs[f] = new Uint8Array(await (await fetchOk('./wasm/' + f)).arrayBuffer());
@@ -62,11 +66,7 @@ async function init() {
                 console.warn('[worker] fon tiada, dilangkau:', f);
             }
         }
-        // Buang baris `use <fon.ttf>;` untuk fon yang tiada (cth Pacifico)
-        scadSource = scadSource.replace(
-            /^\s*use\s*<([^>]+\.ttf)>\s*;?\s*$/gim,
-            (line, f) => (fontBufs[f] ? line : `// fon tiada: ${f}`)
-        );
+        scadCache['keychain.scad'] = await prepScad('keychain.scad');
 
         warm = await freshInstance();   // pastikan enjin betul-betul boleh start
         postMessage({ type: 'READY', message: '✅ Engine siap. Tekan Generate Preview.' });
@@ -76,14 +76,14 @@ async function init() {
     }
 }
 
-async function renderPart(part, params) {
+async function renderPart(part, params, scad) {
     const inst = warm || await freshInstance();
     warm = null;
     logLines = [];
-    inst.FS.writeFile('/input.scad', scadSource);
+    inst.FS.writeFile('/input.scad', scadCache[scad] ||= await prepScad(scad));
     const args = ['/input.scad', '-o', '/out.stl', '-D', `Pilihan_Cetak="${part}"`, '-D', '$fn=24'];
     for (const [k, v] of Object.entries(params)) {
-        const val = typeof v === 'number' ? v : '"' + String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+        const val = typeof v === 'number' || typeof v === 'boolean' ? v : '"' + String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
         args.push('-D', `${k}=${val}`);
     }
     try { inst.callMain(args); } catch (err) { console.warn('[worker] callMain:', err); }
@@ -95,13 +95,13 @@ async function renderPart(part, params) {
 }
 
 onmessage = async e => {
-    const { action, params } = e.data || {};
+    const { action, params, scad } = e.data || {};
     if (action !== 'render') return;
     if (!mod) { postMessage({ status: 'error', message: 'Engine belum siap.' }); return; }
     postMessage({ status: 'rendering', message: '⏳ Rendering model...' });
     try {
-        const base = await renderPart('Tapak Sahaja', params || {});
-        const text = await renderPart('Teks Sahaja', params || {});
+        const base = await renderPart('Tapak Sahaja', params || {}, scad || 'keychain.scad');
+        const text = await renderPart('Teks Sahaja', params || {}, scad || 'keychain.scad');
         postMessage({ type: 'STL_RESULT', base, text }, [base.buffer, text.buffer]);
     } catch (err) {
         console.error('[worker] render gagal:', err);
