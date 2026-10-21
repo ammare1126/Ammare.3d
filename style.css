@@ -74,3 +74,4 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .gal img{display:block;width:100%;height:100%;object-fit:cover}
 @media(hover:hover){.gal figure:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(11,122,112,.22),0 2px 6px rgba(0,0,0,.06)}}
 @media(prefers-reduced-motion:reduce){.gal figure,.gal figure:hover{transition:none;transform:none}}
+.gal figure:last-child:nth-child(odd){grid-column:1/-1;aspect-ratio:2/1}
