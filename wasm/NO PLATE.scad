@@ -23,9 +23,9 @@ Tinggi_Plat_1_Baris = 20; // [12:1:35]
 
 
 /* [3. Teks Nombor Plat] */
-Teks_Atas = "JND";
-Teks_Bawah = "7454";
-Teks_Satu_Baris = "SD 4723 Y";
+Teks_Atas = "NO";
+Teks_Bawah = "1244";
+Teks_Satu_Baris = "NO 1234";
 
 Nama_Fon = "Arial Black:style=Regular"; // ["Arial Black:style=Regular", "Arial:style=Bold", "Impact:style=Regular", "Bebas Neue:style=Regular", "Archivo Black:style=Regular", "Agency FB:style=Bold","CharlesWright-Bold"]
 
