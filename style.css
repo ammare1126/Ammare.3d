@@ -36,6 +36,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 4px
 details{padding:10px 0;border-bottom:1px solid var(--line)}summary{font-weight:600;cursor:pointer}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
 .wa{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));background:#25d366;color:#04210f;font-weight:700;padding:12px 16px;border-radius:99px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+
 /* ===== LUXURY GLASS + SEGMENTED + SLIDER ===== */
 :root{--glass:rgba(255,255,255,.62);--glass-b:rgba(255,255,255,.7);--hi:rgba(255,255,255,.7);--shadow:0 8px 30px rgba(11,122,112,.10)}
 @media(prefers-color-scheme:dark){:root{--glass:rgba(22,32,32,.55);--glass-b:rgba(255,255,255,.10);--hi:rgba(255,255,255,.08);--shadow:0 8px 30px rgba(0,0,0,.35)}}
