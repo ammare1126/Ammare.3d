@@ -239,43 +239,53 @@ $("#btn-add").onclick = () => {
   hint(""); drawCart();
 };
 
-/* hantar order ke Telegram (melalui Cloudflare Worker) */
-async function submitOrder(name, area) {
-  if (!CONFIG.orderApi) return "";
-  const btn = $("#btn-send"); btn.disabled = true; hint("⏳ Menghantar order…");
+/* ===== HANTAR ORDER (Telegram + WhatsApp) ===== */
+// 4 digit boleh berulang kalau order banyak. Untuk lebih unik guna: Math.floor(10000 + Math.random() * 90000)
+const newOrderId = () => "KC-" + Math.floor(1000 + Math.random() * 9000);   // cth: KC-8472
+
+async function sendToTelegram(order) {   // order = { id, name, phone, area }
+  if (!CONFIG.orderApi) return { ok: false };
   try {
     const fd = new FormData();
-    fd.append("order", JSON.stringify({ name, area, total: total(), qty: qty(), items: cart.map(({ stl, ...i }) => i) }));
-    for (const [k, i] of cart.entries()) {
+    fd.append("order", JSON.stringify({ ...order, total: total(), qty: qty(), items: cart.map(({ stl, ...i }) => i) }));
+    cart.forEach((i, k) => {
       fd.append("model" + k, new Blob([i.stl.model], { type: "model/stl" }), `item${k + 1}.stl`);
       fd.append("png" + k, i.stl.png, `item${k + 1}.jpg`);
-    }
+    });
     const r = await fetch(CONFIG.orderApi, { method: "POST", body: fd });
     if (!r.ok) throw new Error(r.status);
     const j = await r.json();
-    hint(j.failed ? "⚠️ Order diterima, tapi sebahagian fail gagal sampai. Teruskan di WhatsApp." : "✅ Order diterima."); return j.id;
-  } catch (e) { hint("Order tak sampai ke sistem. Teruskan di WhatsApp sahaja."); return ""; }
-  finally { btn.disabled = !cart.length; }
+    return { ok: true, failed: j.failed };
+  } catch (e) { return { ok: false }; }
 }
 
-/* WhatsApp */
-const wa = text => open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`, "_blank");
+function buildMessage(o) {
+  const items = cart.map((i, k) => `${k + 1}. ${i.p} "${i.t}"\n   Warna: tapak ${i.b}, teks ${i.x}\n   Kuantiti: ${i.q}`).join("\n");
+  return `🆕 ORDER BARU\nOrder ID: ${o.id}\nNama: ${o.name}\nNo. Tel: ${o.phone}\nKawasan COD: ${o.area}\n\n${items}\n\nJumlah: ${RM(total())}` +
+    (qty() >= CONFIG.bulkQty ? `\nDeposit ${CONFIG.depositPct}%: ${RM(dep())}` : "");
+}
+
+const wa = text => { location.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`; };
 $("#wa").href = `https://wa.me/${CONFIG.whatsapp}`;
-$("#btn-send").onclick = async () => {
-  const n = $("#cname").value.trim(), a = $("#carea").value.trim();
-  if (!n || !a) { hint("Isi nama dan kawasan/hari COD dulu."); return; }
-  const id = await submitOrder(n, a);
-  wa("Salam, saya nak order" + (id ? ` (ID: ${id})` : "") + ":\n" +
-    cart.map((i, k) => `${k + 1}. ${i.p} "${i.t}" | tapak ${i.b}, teks ${i.x} | fon ${i.f}, saiz ${i.s} | ×${i.q}`).join("\n") +
-    `\n\nJumlah: ${RM(total())}` + (qty() >= CONFIG.bulkQty ? ` (deposit ${CONFIG.depositPct}%: ${RM(dep())})` : "") +
-    `\nNama: ${n}\nCOD / pickup: ${a}`);
-};
+
+async function sendToWhatsApp() {
+  const o = { id: newOrderId(), name: $("#cname").value.trim(), phone: $("#cphone").value.trim(), area: $("#carea").value.trim() };
+  if (!o.name || !o.phone || !o.area) { hint("Isi nama, no. telefon dan kawasan COD dulu."); return; }
+  if (!/^[0-9+\s-]{9,15}$/.test(o.phone)) { hint("No. telefon tak sah (cth: 0123456789)."); return; }
+  const btn = $("#btn-send"); btn.disabled = true; hint("⏳ Menghantar order…");
+  const res = await sendToTelegram(o);
+  hint(res.ok ? (res.failed ? "⚠️ Order diterima, tapi sebahagian fail gagal sampai." : "✅ Order diterima.") : "Order tak sampai ke sistem. Teruskan di WhatsApp sahaja.");
+  btn.disabled = !cart.length;
+  wa(buildMessage(o));
+}
+$("#btn-send").onclick = sendToWhatsApp;
+
 $("#cu-send").onclick = () => wa(`Salam, nak minta sebut harga custom:\nIdea: ${$("#cu-text").value}\nSaiz: ${$("#cu-size").value}\nKuantiti/bajet: ${$("#cu-qty").value}\n(Saya hantar gambar rujukan di sini.)`);
 
 /* harga + galeri */
 $("#prices").innerHTML = `<tr><th>Kuantiti</th><th>Harga seunit</th></tr><tr><td>1 – ${CONFIG.bulkQty - 1}</td><td>${RM(CONFIG.price)}</td></tr><tr><td>${CONFIG.bulkQty} ke atas</td><td>${RM(CONFIG.priceBulk)}</td></tr>`;
 $("#dnote").textContent = `Order ${CONFIG.bulkQty} pcs ke atas dan order custom: deposit ${CONFIG.depositPct}%.`;
 $("#grid").innerHTML = CONFIG.gallery.length ? "" : "<p class='mute'>Galeri akan datang.</p>";
-CONFIG.gallery.forEach(f => { const i = new Image(); i.src = "gallery/" + f; i.alt = "Keychain siap"; i.loading = "lazy"; $("#grid").appendChild(i); });
+CONFIG.gallery.forEach(f => { const i = new Image(); ... });
 
 drawSw(); paint(); drawCart(); setProduct(); resize();
