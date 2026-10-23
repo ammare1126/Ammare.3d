@@ -24,7 +24,7 @@
   <div class="card">
     <label>Produk</label><div id="prod" class="chips"></div>
     <div id="f-nama">
-      <label for="text">Nama / teks</label><input id="text" type="text" placeholder="cth: Nama" autocomplete="off">
+      <label for="text">Nama / teks</label><input id="text" type="text" placeholder="cth: AMMARE" autocomplete="off">
       <div class="row"><label for="size">Saiz teks</label><output id="sizeout" class="pill">15</output></div>
       <input id="size" type="range" min="10" max="22" value="15">
     </div>
@@ -35,9 +35,9 @@
         <option value="Design C" selected>C · Potong 2 bucu</option><option value="Design D">D · Potong 4 bucu</option>
         <option value="Design E">E · Memanjang potong bucu (1 baris)</option><option value="Design F">F · Memanjang petak (1 baris)</option>
       </select>
-      <div id="pl-two"><label for="pl-top">Teks atas</label><input id="pl-top" type="text" maxlength="6" placeholder="cth: ABC" autocomplete="off">
-        <label for="pl-bottom">Teks bawah</label><input id="pl-bottom" type="text" maxlength="6" placeholder="cth: 1234" autocomplete="off"></div>
-      <div id="pl-single" hidden><label for="pl-one">Nombor plat</label><input id="pl-one" type="text" maxlength="10" placeholder="cth: ABC 1234" autocomplete="off"></div>
+      <div id="pl-two"><label for="pl-top">Teks atas</label><input id="pl-top" type="text" maxlength="6" placeholder="cth: JND" autocomplete="off">
+        <label for="pl-bottom">Teks bawah</label><input id="pl-bottom" type="text" maxlength="6" placeholder="cth: 7454" autocomplete="off"></div>
+      <div id="pl-single" hidden><label for="pl-one">Nombor plat</label><input id="pl-one" type="text" maxlength="10" placeholder="cth: SD 4723 Y" autocomplete="off"></div>
     </div>
     <div id="fontwrap"><label for="font">Fon</label><select id="font"></select></div>
     <label>Warna tapak: <b id="nm-base"></b></label><div id="sw-base" class="sws" role="radiogroup" aria-label="Warna tapak"></div>
@@ -47,17 +47,9 @@
     <button id="btn-render" class="btn ghost" type="button">Jana preview 3D</button>
     <label for="qty">Kuantiti</label><input id="qty" type="number" min="1" value="1" inputmode="numeric">
     <button id="btn-add" class="btn" type="button">Tambah ke troli</button>
+    <p id="add-hint" class="mute" role="alert"></p>
   </div>
 
-  <div class="card">
-    <h2>Troli</h2><ul id="cart"></ul><p id="total" class="mute">Troli kosong.</p>
-    <label for="cname">Nama anda</label><input id="cname" type="text" autocomplete="name">
-    <label for="cphone">No. telefon / WhatsApp</label><input id="cphone" type="text" inputmode="tel" autocomplete="tel" placeholder="No. Telefon / WhatsApp">
-    <label for="carea">Kawasan / hari COD</label><input id="carea" type="text" placeholder="cth: Parit Raja, Sabtu">
-    <p id="hint" class="mute" role="alert"></p>
-    <button id="btn-send" class="btn wa-btn" type="button" disabled>Hantar order di WhatsApp</button>
-    <p class="mute">COD atau ambil sendiri sahaja. Tiada pos.</p>
-  </div>
 </section>
 
 <section id="galeri" class="tab">
@@ -83,12 +75,41 @@
 </div></section>
 
 <section id="faq" class="tab"><div class="card">
-  <details><summary>Macam mana nak bayar?</summary><p>Tunai atau DuitNow masa COD.</p></details>
+  <details><summary>Macam mana nak bayar?</summary><p>Imbas QR DuitNow/TNG semasa tekan Sahkan Order, kemudian hantar resit di WhatsApp. Order 10 pcs ke atas: deposit 50% dahulu.</p></details>
   <details><summary>Boleh pos?</summary><p>Tak boleh. COD atau ambil sendiri sahaja.</p></details>
   <details><summary>Berapa lama siap?</summary><p>Tanya kami di WhatsApp. Masa siap bergantung pada jumlah tempahan.</p></details>
   <details><summary>Boleh tukar teks lepas order?</summary><p>Boleh kalau belum dicetak. Hubungi kami cepat.</p></details>
 </div></section>
 </main>
+
+<button id="cart-fab" class="fab" type="button" aria-label="Buka troli, 0 item">
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.5L21 8H6"/></svg>
+  <span id="cart-badge" class="badge" hidden>0</span>
+</button>
+
+<dialog id="cart-modal" aria-labelledby="cm-title"><div class="cm">
+  <div class="cm-head"><h2 id="cm-title">Troli anda</h2><button id="cm-close" type="button" aria-label="Tutup">✕</button></div>
+
+  <div id="cm-v1">
+    <ul id="cart"></ul><p id="total" class="mute">Troli kosong.</p>
+    <label for="cname">Nama anda</label><input id="cname" type="text" autocomplete="name">
+    <label for="cphone">No. telefon / WhatsApp</label><input id="cphone" type="text" inputmode="tel" autocomplete="tel" placeholder="No. Telefon / WhatsApp">
+    <label for="carea">Kawasan / hari COD</label><input id="carea" type="text" placeholder="cth: Parit Raja, Sabtu">
+    <p id="hint" class="mute" role="alert"></p>
+    <button id="btn-confirm" class="btn" type="button" disabled>Sahkan Order</button>
+    <p class="mute">COD atau ambil sendiri sahaja. Tiada pos.</p>
+  </div>
+
+  <div id="cm-v2" hidden>
+    <button id="btn-back" type="button">← Kembali</button>
+    <h3>Sila buat bayaran via DuitNow/TNG</h3>
+    <p class="due">Jumlah Perlu Dibayar: <b id="pay-total">RM0</b></p>
+    <p id="pay-note" class="mute"></p>
+    <img class="qr" src="qr-duitnow.png" alt="QR DuitNow" width="240" height="240" onerror="this.alt='Letak fail qr-duitnow.png di root repo'">
+    <p class="mute">Simpan resit bayaran, kemudian lampirkan di WhatsApp.</p>
+    <button id="btn-send" class="btn wa-btn" type="button">Sudah Bayar? Hantar Order &amp; Resit</button>
+  </div>
+</div></dialog>
 
 <a class="wa" id="wa" href="#" target="_blank" rel="noopener" aria-label="Chat di WhatsApp">💬 WhatsApp</a>
 
