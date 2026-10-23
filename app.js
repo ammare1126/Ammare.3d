@@ -215,7 +215,7 @@ br.onclick = () => {
 const qty = () => cart.reduce((a, i) => a + i.q, 0),
   unit = () => qty() >= CONFIG.bulkQty ? CONFIG.priceBulk : CONFIG.price,
   total = () => qty() * unit(), dep = () => total() * CONFIG.depositPct / 100,
-  hint = m => $("#hint").textContent = m;
+  hint = m => { ($("#cart-modal").open ? $("#hint") : $("#add-hint")).textContent = m; };
 function drawCart() {
   const ul = $("#cart"); ul.innerHTML = "";
   cart.forEach((i, n) => {
@@ -228,7 +228,7 @@ function drawCart() {
   $("#total").textContent = cart.length
     ? `Jumlah: ${RM(total())} (${qty()} pcs × ${RM(unit())})` + (qty() >= CONFIG.bulkQty ? ` · Deposit ${CONFIG.depositPct}%: ${RM(dep())}` : "")
     : "Troli kosong.";
-  $("#btn-send").disabled = !cart.length;
+  $("#btn-confirm").disabled = !cart.length; updateBadge();
 }
 $("#btn-add").onclick = () => {
   const s = spec(), t = s.t;
@@ -261,24 +261,64 @@ async function sendToTelegram(order) {   // order = { id, name, phone, area }
 
 function buildMessage(o) {
   const items = cart.map((i, k) => `${k + 1}. ${i.p} "${i.t}"\n   Warna: tapak ${i.b}, teks ${i.x}\n   Kuantiti: ${i.q}`).join("\n");
+  const bulk = qty() >= CONFIG.bulkQty;
   return `🆕 ORDER BARU\nOrder ID: ${o.id}\nNama: ${o.name}\nNo. Tel: ${o.phone}\nKawasan COD: ${o.area}\n\n${items}\n\nJumlah: ${RM(total())}` +
-    (qty() >= CONFIG.bulkQty ? `\nDeposit ${CONFIG.depositPct}%: ${RM(dep())}` : "");
+    (bulk ? `\nDeposit ${CONFIG.depositPct}% (dah dibayar): ${RM(dep())}` : "") +
+    `\n\nSaya dah bayar via DuitNow/TNG. 📎 Resit pembayaran saya lampirkan di sini.`;
 }
 
 const wa = text => { location.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`; };
 $("#wa").href = `https://wa.me/${CONFIG.whatsapp}`;
 
-async function sendToWhatsApp() {
-  const o = { id: newOrderId(), name: $("#cname").value.trim(), phone: $("#cphone").value.trim(), area: $("#carea").value.trim() };
-  if (!o.name || !o.phone || !o.area) { hint("Isi nama, no. telefon dan kawasan COD dulu."); return; }
-  if (!/^[0-9+\s-]{9,15}$/.test(o.phone)) { hint("No. telefon tak sah (cth: 0123456789)."); return; }
-  const btn = $("#btn-send"); btn.disabled = true; hint("⏳ Menghantar order…");
-  const res = await sendToTelegram(o);
-  hint(res.ok ? (res.failed ? "⚠️ Order diterima, tapi sebahagian fail gagal sampai." : "✅ Order diterima.") : "Order tak sampai ke sistem. Teruskan di WhatsApp sahaja.");
-  btn.disabled = !cart.length;
-  wa(buildMessage(o));
+/* ===== TROLI MODAL (2 langkah: Troli -> Bayaran) ===== */
+const modal = $("#cart-modal");
+
+function updateBadge() {
+  const n = qty(), b = $("#cart-badge");
+  b.textContent = n > 99 ? "99+" : n; b.hidden = n === 0;
+  $("#cart-fab").setAttribute("aria-label", `Buka troli, ${n} item`);
+  b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
 }
-$("#btn-send").onclick = sendToWhatsApp;
+function showView(v) {
+  $("#cm-v1").hidden = v !== 1; $("#cm-v2").hidden = v !== 2;
+  $("#cm-title").textContent = v === 1 ? "Troli anda" : "Bayaran";
+}
+function openCart() { showView(1); hint(""); if (!modal.open) modal.showModal(); }
+function closeCart() { if (modal.open) modal.close(); }
+
+function confirmOrder() {                       // View 1 -> View 2
+  const n = $("#cname").value.trim(), p = $("#cphone").value.trim(), a = $("#carea").value.trim();
+  if (!cart.length) { hint("Troli kosong."); return; }
+  if (!n || !p || !a) { hint("Isi nama, no. telefon dan kawasan COD dulu."); return; }
+  if (!/^[0-9+\s-]{9,15}$/.test(p)) { hint("No. telefon tak sah (cth: 0123456789)."); return; }
+  hint("");
+  const bulk = qty() >= CONFIG.bulkQty;
+  $("#pay-total").textContent = RM(bulk ? dep() : total());
+  $("#pay-note").textContent = bulk
+    ? `Deposit ${CONFIG.depositPct}% daripada jumlah ${RM(total())}. Baki dibayar masa COD.`
+    : `Jumlah order: ${RM(total())}.`;
+  showView(2);
+}
+
+async function sendOrder() {                    // butang akhir: Hantar Order & Resit
+  const o = { id: newOrderId(), name: $("#cname").value.trim(), phone: $("#cphone").value.trim(), area: $("#carea").value.trim() };
+  const btn = $("#btn-send"), label = btn.textContent;
+  btn.disabled = true; btn.textContent = "⏳ Menghantar…";
+  await sendToTelegram(o);                      // kalau gagal, tetap teruskan ke WhatsApp
+  const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(buildMessage(o))}`;
+  closeCart();
+  if (!window.open(url, "_blank")) location.href = url;   // popup disekat -> buka di tab sama
+  cart = []; drawCart();                        // kosongkan troli supaya tak jadi order berganda
+  btn.disabled = false; btn.textContent = label;
+}
+
+$("#cart-fab").onclick = openCart;
+$("#cm-close").onclick = closeCart;
+$("#btn-back").onclick = () => showView(1);
+$("#btn-confirm").onclick = confirmOrder;
+$("#btn-send").onclick = sendOrder;
+modal.addEventListener("click", e => { if (e.target === modal) closeCart(); });  // klik di luar kotak
+modal.addEventListener("close", () => showView(1));
 
 $("#cu-send").onclick = () => wa(`Salam, nak minta sebut harga custom:\nIdea: ${$("#cu-text").value}\nSaiz: ${$("#cu-size").value}\nKuantiti/bajet: ${$("#cu-qty").value}\n(Saya hantar gambar rujukan di sini.)`);
 
