@@ -72,6 +72,25 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .gal{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 .gal figure{margin:0;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(46,196,182,.18),rgba(127,140,140,.12));border:1px solid var(--glass-b);box-shadow:0 10px 28px rgba(11,122,112,.16),0 2px 6px rgba(0,0,0,.06);transition:transform .25s,box-shadow .25s}
 .gal img{display:block;width:100%;height:100%;object-fit:cover}
+.gal figure:last-child:nth-child(odd){grid-column:1/-1;aspect-ratio:2/1}
 @media(hover:hover){.gal figure:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(11,122,112,.22),0 2px 6px rgba(0,0,0,.06)}}
 @media(prefers-reduced-motion:reduce){.gal figure,.gal figure:hover{transition:none;transform:none}}
-.gal figure:last-child:nth-child(odd){grid-column:1/-1;aspect-ratio:2/1}
+
+/* ===== TROLI TERAPUNG + MODAL ===== */
+.fab{position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:40;width:46px;height:46px;border-radius:50%;border:1px solid var(--glass-b);background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:var(--fg);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow)}
+.badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#e53935;color:#fff;font-size:.72rem;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg)}
+.badge[hidden]{display:none}
+.badge.bump{animation:bump .3s}
+@keyframes bump{50%{transform:scale(1.35)}}
+nav{padding-right:70px}
+#cart-modal{border:0;padding:0;width:100%;max-width:520px;max-height:88vh;margin:auto auto 0;border-radius:22px 22px 0 0;background:var(--bg);color:var(--fg);box-shadow:0 -10px 40px rgba(0,0,0,.25);overflow:auto}
+#cart-modal::backdrop{background:rgba(10,20,20,.45);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+@media(min-width:600px){#cart-modal{margin:auto;border-radius:22px}}
+body:has(dialog[open]){overflow:hidden}
+.cm{padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+.cm-head{display:flex;justify-content:space-between;align-items:center}.cm-head h2{margin:0}
+#cm-close,#btn-back{border:0;background:none;color:var(--accd);font:inherit;font-weight:600;cursor:pointer;padding:8px}
+#cm-v2 h3{margin:8px 0 0}
+.due{font-size:1.15rem;margin:8px 0 0}.due b{color:var(--accd)}
+.qr{display:block;margin:14px auto;width:min(240px,70%);height:auto;border-radius:16px;background:#fff;padding:10px;box-shadow:var(--shadow)}
+@media(prefers-reduced-motion:reduce){.badge.bump{animation:none}}
