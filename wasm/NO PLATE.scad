@@ -9,34 +9,34 @@ Tambah_Border = false;
 
 
 /* [2. Reka Bentuk & Saiz Tapak (Design A - F)] */
-Bentuk_Plat = "Design C"; // ["Design A": "Design A (Perisai/Trapezoid)", "Design B": "Design B (Petak Bucu Bulat 2 Baris)", "Design C": "Design C (Potong 2 Bucu)", "Design D": "Design D (Potong 4 Bucu)", "Design E": "Design E (Memanjang Potong Bucu)", "Design F": "Design F (Memanjang Petak Penuh)"]
+Bentuk_Plat = "Design A"; // ["Design A": "Design A (Perisai/Trapezoid)", "Design B": "Design B (Petak Bucu Bulat 2 Baris)", "Design C": "Design C (Potong 2 Bucu)", "Design D": "Design D (Potong 4 Bucu)", "Design E": "Design E (Memanjang Potong Bucu)", "Design F": "Design F (Memanjang Petak Penuh)"]
 
 Mod_Baris = "Auto"; // ["Auto": "Ikut Design (A-D: 2 Baris, E-F: 1 Baris)", "1 Baris": "Paksa 1 Baris", "2 Baris": "Paksa 2 Baris"]
 
 // Lebar & Tinggi untuk Plat 2 Baris (Design A - D) - Saiz baru lebih mantap!
-Lebar_Plat_2_Baris = 50; // [35:1:80]
-Tinggi_Plat_2_Baris = 32; // [20:1:50]
+Lebar_Plat_2_Baris = 40; // [35:1:80]
+Tinggi_Plat_2_Baris = 25; // [20:1:50]
 
 // Lebar & Tinggi untuk Plat 1 Baris (Design E & F) - Sebaya keychain "Darling"
-Lebar_Plat_1_Baris = 65; // [45:1:90]
-Tinggi_Plat_1_Baris = 20; // [12:1:35]
+Lebar_Plat_1_Baris = 50; // [45:1:90]
+Tinggi_Plat_1_Baris = 15; // [12:1:35]
 
 
 /* [3. Teks Nombor Plat] */
-Teks_Atas = "NO";
-Teks_Bawah = "1244";
-Teks_Satu_Baris = "NO 1234";
+Teks_Atas = "ABC";
+Teks_Bawah = "1234";
+Teks_Satu_Baris = "ABC 1234";
 
-Nama_Fon = "Arial Black:style=Regular"; // ["Arial Black:style=Regular", "Arial:style=Bold", "Impact:style=Regular", "Bebas Neue:style=Regular", "Archivo Black:style=Regular", "Agency FB:style=Bold","CharlesWright-Bold"]
+Nama_Fon = "CharlesWright-Bold"; // ["Arial Black:style=Regular", "Arial:style=Bold", "Impact:style=Regular", "Bebas Neue:style=Regular", "Archivo Black:style=Regular", "Agency FB:style=Bold","CharlesWright-Bold"]
 
 // Saiz huruf untuk 2 Baris (Dibesarkan dari 7.5 ke 9.5)
-Saiz_Teks = 9.5; // [4:0.5:18]
+Saiz_Teks = 7.5; // [4:0.5:18]
 
 // Saiz huruf untuk 1 Baris (Dibesarkan dari 5.5 ke 7.5)
-Saiz_Teks_1_Baris = 7.5; // [3:0.5:15]
+Saiz_Teks_1_Baris = 5.5; // [3:0.5:15]
 
 // Jarak antara baris atas dan bawah (Dibesarkan dari 9.0 ke 11.5)
-Jarak_Baris = 11.5; // [5:0.5:25]
+Jarak_Baris = 9.0; // [5:0.5:25]
 
 Jarak_Huruf = 1.0; // [0.8:0.05:1.5]
 Anjakan_Teks_X = 0.0; // [-15:0.5:15]
@@ -52,7 +52,7 @@ Jejari_Bucu = 2.0;
 
 /* [5. Lubang Keychain (Bucu Kiri Atas)] */
 Ada_Lubang = true;
-Saiz_Lubang = 4.0; // [2:0.2:6]
+Saiz_Lubang = 3.0; // [2:0.2:6]
 Anjakan_Lubang_X = 0.0; // [-5:0.5:5]
 Anjakan_Lubang_Y = 0.0; // [-5:0.5:5]
 
