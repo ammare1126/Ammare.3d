@@ -27,17 +27,17 @@ const CONFIG = {
       ] },
     { label: "Keychain No Plate", type: "plate", scad: "NO PLATE.scad", fonts: ["CharlesWright-Bold"],
       params: [
-      { key: "Saiz_Teks", label: "Saiz huruf 2 baris", min: 4, max: 18, step: 0.5, value: 9.5 },
-      { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 15, step: 0.5, value: 7.5 },
-      { key: "Jarak_Baris", label: "Jarak antara baris (mm)", min: 5, max: 25, step: 0.5, value: 11.5 },
+      { key: "Saiz_Teks", label: "Saiz huruf 2 baris", min: 4, max: 10, step: 0.5, value: 7.5 },
+      { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 8, step: 0.5, value: 5.5 },
+      { key: "Jarak_Baris", label: "Jarak antara baris (mm)", min: 6, max: 12, step: 0.5, value: 9 },
       { key: "Jarak_Huruf", label: "Jarak huruf", min: 0.8, max: 1.5, step: 0.05, value: 1.0 },
-      { key: "Lebar_Plat_2_Baris", label: "Lebar plat 2 baris (mm)", min: 35, max: 80, step: 1, value: 50 },
-      { key: "Tinggi_Plat_2_Baris", label: "Tinggi plat 2 baris (mm)", min: 20, max: 50, step: 1, value: 32 },
-      { key: "Lebar_Plat_1_Baris", label: "Lebar plat 1 baris (mm)", min: 45, max: 90, step: 1, value: 65 },
-      { key: "Tinggi_Plat_1_Baris", label: "Tinggi plat 1 baris (mm)", min: 12, max: 35, step: 1, value: 20 },
+      { key: "Lebar_Plat_2_Baris", label: "Lebar plat 2 baris (mm)", min: 35, max: 60, step: 1, value: 40 },
+      { key: "Tinggi_Plat_2_Baris", label: "Tinggi plat 2 baris (mm)", min: 20, max: 35, step: 1, value: 25 },
+      { key: "Lebar_Plat_1_Baris", label: "Lebar plat 1 baris (mm)", min: 45, max: 70, step: 1, value: 50 },
+      { key: "Tinggi_Plat_1_Baris", label: "Tinggi plat 1 baris (mm)", min: 12, max: 25, step: 1, value: 15 },
       { key: "Tebal_Tapak", label: "Tebal tapak (mm)", min: 1.2, max: 4, step: 0.2, value: 2.4 },
       { key: "Tebal_Teks", label: "Tebal teks (mm)", min: 0.8, max: 3, step: 0.2, value: 1.4 },
-      { key: "Saiz_Lubang", label: "Saiz lubang (mm)", min: 2, max: 6, step: 0.2, value: 4 }
+      { key: "Saiz_Lubang", label: "Saiz lubang (mm)", min: 2, max: 6, step: 0.2, value: 3 }
       ] }
     // produk baru: salin satu blok produk di atas (fail .scad letak dalam folder wasm)
   ],
@@ -72,6 +72,7 @@ function setProduct() {
   $("#fontwrap").hidden = prod.fonts.length < 2;
   Object.keys(P).forEach(k => delete P[k]); drawAdv(true);
   cur = null; syncLines();
+  if (ready) { demoFill(); autoRender(); }
 }
 $("#pl-design").onchange = syncLines;
 
@@ -190,26 +191,44 @@ const W = new Worker("openscad-worker.js", { type: "module" }), st = $("#status"
 br.disabled = true;
 W.onmessage = e => {
   const d = e.data;
-  if (d.type === "READY") { ready = true; br.disabled = false; st.textContent = d.message; }
+  if (d.type === "READY") { ready = true; st.textContent = d.message; demoFill(); render3D(); }
   else if (d.type === "STL_RESULT") {
     show(d.base, d.text); R.render(S, cam);
     const shot = snap(), model = mergeSTL(d.base, d.text, spec().dz), key = pending;
     st.textContent = "⏳ Menyediakan gambar…";
     shot.then(png => {
       br.disabled = false;
-      if (!png) { st.textContent = "❌ Gambar gagal ditangkap. Cuba jana semula."; return; }
-      cur = { key, base: d.base, text: d.text, png, model };
-      st.textContent = "✅ Siap. Seret untuk pusing.";
+      if (!png) st.textContent = "❌ Gambar gagal ditangkap. Ubah sikit input untuk cuba lagi.";
+      else { cur = { key, base: d.base, text: d.text, png, model }; st.textContent = "✅ Siap. Seret untuk pusing."; }
+      renderDone();
     });
-  } else if (d.status) { st.textContent = d.message; if (d.status === "error") br.disabled = !ready; }
+  } else if (d.status) { st.textContent = d.message; if (d.status === "error") { br.disabled = !ready; renderDone(); } }
 };
 W.onerror = () => { st.textContent = "❌ Worker gagal dimuat. Cuba Ctrl+F5."; };
-br.onclick = () => {
+/* ===== AUTO LIVE PREVIEW ===== */
+let busy = false, dirty = false, timer = null;
+
+function demoFill() {      // kotak kosong -> isi contoh supaya preview pertama tak kosong
+  const set = (id, v) => { if (!$(id).value.trim()) $(id).value = v; };
+  if (prod.type === "plate") { set("#pl-top", "JND"); set("#pl-bottom", "7454"); set("#pl-one", "SD 4723 Y"); }
+  else set("#text", "AMMARE");
+}
+function render3D() {      // hantar ke worker (satu render pada satu masa)
+  if (!ready) return;
+  if (busy) { dirty = true; return; }                  // sedang render -> ulang selepas siap
   const s = spec();
   if (!s.ok) { st.textContent = "Taip nama / teks dulu."; return; }
-  br.disabled = true; pending = curKey();
+  if (cur && cur.key === curKey()) return;             // tiada perubahan -> tak perlu render
+  busy = true; dirty = false; pending = curKey();
   W.postMessage({ action: "render", scad: s.scad, params: s.params });
-};
+}
+function autoRender() {    // debounce 1 saat selepas input berhenti
+  clearTimeout(timer);
+  if (ready) st.textContent = "✍️ Preview dikemas kini sekejap lagi…";
+  timer = setTimeout(render3D, 1000);
+}
+function renderDone() { busy = false; if (dirty) render3D(); }
+$("#tempah").addEventListener("input", e => { if (e.target.id !== "qty") autoRender(); });
 
 /* troli */
 const qty = () => cart.reduce((a, i) => a + i.q, 0),
@@ -233,7 +252,7 @@ function drawCart() {
 $("#btn-add").onclick = () => {
   const s = spec(), t = s.t;
   if (!s.ok) { hint("Taip nama / teks dulu."); return; }
-  if (!cur || cur.key !== curKey()) { hint("Tekan 'Jana preview 3D' dulu untuk nama ini."); return; }
+  if (!cur || cur.key !== curKey()) { hint("Tunggu preview siap dulu (beberapa saat)."); return; }
   if (cart.length >= 8) { hint("Maksimum 8 jenis keychain setiap order."); return; }
   cart.push({ p: prod.label + (prod.type === "plate" ? " " + s.params.Bentuk_Plat : ""), t, b: sel.base, x: sel.text, q: Math.max(1, +$("#qty").value || 1), f: $("#font").value, s: s.params.text_size ?? s.params.Saiz_Teks, pr: { ...P }, stl: cur });
   hint(""); drawCart();
