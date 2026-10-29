@@ -69,7 +69,7 @@ async function init() {
         scadCache['keychain.scad'] = await prepScad('keychain.scad');
 
         warm = await freshInstance();   // pastikan enjin betul-betul boleh start
-        postMessage({ type: 'READY', message: 'Taip nama kat bawah dan tekan Generate Preview untuk tengok magik.' });
+        postMessage({ type: 'READY', message: '✅ Engine siap. Tekan Generate Preview.' });
     } catch (err) {
         console.error('[worker] init gagal:', err);
         postMessage({ status: 'error', message: 'Engine gagal load: ' + msgOf(err) });
