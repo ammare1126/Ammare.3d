@@ -27,9 +27,9 @@ const CONFIG = {
       ] },
     { label: "Keychain No Plate", type: "plate", scad: "NO PLATE.scad", fonts: ["CharlesWright-Bold"],
       params: [
-      { key: "Saiz_Teks", label: "Saiz huruf 2 baris", min: 4, max: 10, step: 0.5, value: 7.5 },
-      { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 8, step: 0.5, value: 5.5 },
-      { key: "Jarak_Baris", label: "Jarak antara baris (mm)", min: 6, max: 12, step: 0.5, value: 9 },
+      { key: "Saiz_Teks", label: "Saiz huruf 2 baris", min: 4, max: 12, step: 0.5, value: 9 },
+      { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 10, step: 0.5, value: 8 },
+      { key: "Jarak_Baris", label: "Jarak antara baris (mm)", min: 6, max: 14, step: 0.5, value: 11 },
       { key: "Jarak_Huruf", label: "Jarak huruf", min: 0.8, max: 1.5, step: 0.05, value: 1.0 },
       { key: "Lebar_Plat_2_Baris", label: "Lebar plat 2 baris (mm)", min: 35, max: 60, step: 1, value: 45 },
       { key: "Tinggi_Plat_2_Baris", label: "Tinggi plat 2 baris (mm)", min: 20, max: 35, step: 1, value: 29 },
@@ -224,7 +224,7 @@ function render3D() {      // hantar ke worker (satu render pada satu masa)
 }
 function autoRender() {    // debounce 1 saat selepas input berhenti
   clearTimeout(timer);
-  if (ready) st.textContent = "✍️ Preview dikemaskini sekejap lagi…";
+  if (ready) st.textContent = "✍️ Preview dikemas kini sekejap lagi…";
   timer = setTimeout(render3D, 1000);
 }
 function renderDone() { busy = false; if (dirty) render3D(); }
