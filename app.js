@@ -31,10 +31,10 @@ const CONFIG = {
       { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 8, step: 0.5, value: 5.5 },
       { key: "Jarak_Baris", label: "Jarak antara baris (mm)", min: 6, max: 12, step: 0.5, value: 9 },
       { key: "Jarak_Huruf", label: "Jarak huruf", min: 0.8, max: 1.5, step: 0.05, value: 1.0 },
-      { key: "Lebar_Plat_2_Baris", label: "Lebar plat 2 baris (mm)", min: 35, max: 60, step: 1, value: 40 },
-      { key: "Tinggi_Plat_2_Baris", label: "Tinggi plat 2 baris (mm)", min: 20, max: 35, step: 1, value: 25 },
-      { key: "Lebar_Plat_1_Baris", label: "Lebar plat 1 baris (mm)", min: 45, max: 70, step: 1, value: 50 },
-      { key: "Tinggi_Plat_1_Baris", label: "Tinggi plat 1 baris (mm)", min: 12, max: 25, step: 1, value: 15 },
+      { key: "Lebar_Plat_2_Baris", label: "Lebar plat 2 baris (mm)", min: 35, max: 60, step: 1, value: 45 },
+      { key: "Tinggi_Plat_2_Baris", label: "Tinggi plat 2 baris (mm)", min: 20, max: 35, step: 1, value: 29 },
+      { key: "Lebar_Plat_1_Baris", label: "Lebar plat 1 baris (mm)", min: 45, max: 70, step: 1, value: 55 },
+      { key: "Tinggi_Plat_1_Baris", label: "Tinggi plat 1 baris (mm)", min: 12, max: 25, step: 1, value: 17 },
       { key: "Tebal_Tapak", label: "Tebal tapak (mm)", min: 1.2, max: 4, step: 0.2, value: 2.4 },
       { key: "Tebal_Teks", label: "Tebal teks (mm)", min: 0.8, max: 3, step: 0.2, value: 1.4 },
       { key: "Saiz_Lubang", label: "Saiz lubang (mm)", min: 2, max: 6, step: 0.2, value: 3 }
@@ -224,7 +224,7 @@ function render3D() {      // hantar ke worker (satu render pada satu masa)
 }
 function autoRender() {    // debounce 1 saat selepas input berhenti
   clearTimeout(timer);
-  if (ready) st.textContent = "✍️ Preview dikemas kini sekejap lagi…";
+  if (ready) st.textContent = "✍️ Preview dikemaskini sekejap lagi…";
   timer = setTimeout(render3D, 1000);
 }
 function renderDone() { busy = false; if (dirty) render3D(); }
