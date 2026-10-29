@@ -220,8 +220,8 @@ let busy = false, dirty = false, timer = null;
 
 function demoFill() {      // kotak kosong -> isi contoh supaya preview pertama tak kosong
   const set = (id, v) => { if (!$(id).value.trim()) $(id).value = v; };
-  if (prod.type === "plate") { set("#pl-top", "JND"); set("#pl-bottom", "7454"); set("#pl-one", "SD 4723 Y"); }
-  else set("#text", "AMMARE");
+  if (prod.type === "plate") { set("#pl-top", "ABC"); set("#pl-bottom", "1234"); set("#pl-one", "ABC 1234"); }
+  else set("#text", "Rahimi");
 }
 function render3D() {      // hantar ke worker (satu render pada satu masa)
   if (!ready) return;
