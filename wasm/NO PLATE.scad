@@ -13,11 +13,11 @@ Bentuk_Plat = "Design A"; // ["Design A": "Design A (Perisai/Trapezoid)", "Desig
 
 Mod_Baris = "Auto"; // ["Auto": "Ikut Design (A-D: 2 Baris, E-F: 1 Baris)", "1 Baris": "Paksa 1 Baris", "2 Baris": "Paksa 2 Baris"]
 
-// Lebar & Tinggi untuk Plat 2 Baris (Design A - D) - Saiz baru lebih mantap!
+// Lebar & Tinggi untuk Plat 2 Baris (Design A - D)
 Lebar_Plat_2_Baris = 45; // [35:1:80]
 Tinggi_Plat_2_Baris = 29; // [20:1:50]
 
-// Lebar & Tinggi untuk Plat 1 Baris (Design E & F) - Sebaya keychain "Darling"
+// Lebar & Tinggi untuk Plat 1 Baris (Design E & F)
 Lebar_Plat_1_Baris = 55; // [45:1:90]
 Tinggi_Plat_1_Baris = 17; // [12:1:35]
 
@@ -29,14 +29,14 @@ Teks_Satu_Baris = "ABC 1234";
 
 Nama_Fon = "CharlesWright-Bold"; // ["Arial Black:style=Regular", "Arial:style=Bold", "Impact:style=Regular", "Bebas Neue:style=Regular", "Archivo Black:style=Regular", "Agency FB:style=Bold","CharlesWright-Bold"]
 
-// Saiz huruf untuk 2 Baris (Dibesarkan dari 7.5 ke 9.5)
-Saiz_Teks = 9 ; // [4:0.5:18]
+// Saiz huruf untuk 2 Baris
+Saiz_Teks = 9; // [4:0.5:18]
 
-// Saiz huruf untuk 1 Baris (Dibesarkan dari 5.5 ke 7.5)
+// Saiz huruf untuk 1 Baris
 Saiz_Teks_1_Baris = 8 ; // [3:0.5:15]
 
-// Jarak antara baris atas dan bawah (Dibesarkan dari 9.0 ke 11.5)
-Jarak_Baris = 9.0; // [5:0.5:25]
+// Jarak antara baris atas dan bawah
+Jarak_Baris = 11.0; // [5:0.5:25]
 
 Jarak_Huruf = 1.0; // [0.8:0.05:1.5]
 Anjakan_Teks_X = 0.0; // [-15:0.5:15]
@@ -47,14 +47,21 @@ Anjakan_Teks_Y = 0.0; // [-15:0.5:15]
 Tebal_Tapak = 2.4;  // Ditebalkan sedikit supaya lebih solid
 Tebal_Teks = 1.4;
 Tebal_Border = 1.5; 
-Jejari_Bucu = 2.0;  
+Jejari_Bucu = 1.0;  
 
 
 /* [5. Lubang Keychain (Bucu Kiri Atas)] */
 Ada_Lubang = true;
-Saiz_Lubang = 3.0; // [2:0.2:6]
-Anjakan_Lubang_X = 0.0; // [-5:0.5:5]
-Anjakan_Lubang_Y = 0.0; // [-5:0.5:5]
+
+// --- Lubang untuk 2 Baris (Design A - D)
+Saiz_Lubang_2_Baris = 3.0; // [2:0.2:6]
+Anjakan_Lubang_X_2_Baris = 0.0; // [-5:0.5:5]
+Anjakan_Lubang_Y_2_Baris = 0.0; // [-5:0.5:5]
+
+// --- Lubang untuk 1 Baris (Design E - F)
+Saiz_Lubang_1_Baris = 3.0; // [2:0.2:6]
+Anjakan_Lubang_X_1_Baris = -1.0; // [-5:0.5:5]
+Anjakan_Lubang_Y_1_Baris = 1.0; // [-5:0.5:5]
 
 
 /* [6. Warna Preview] */
@@ -67,6 +74,11 @@ $fn = 60;
 // --- LOGIK PENENTUAN SAIZ & BARIS AUTOMATIK ---
 adalah_plat_panjang = (Bentuk_Plat == "Design E" || Bentuk_Plat == "Design F");
 adalah_1_baris = (Mod_Baris == "1 Baris") || (Mod_Baris == "Auto" && adalah_plat_panjang);
+
+// Pilih tetapan lubang ikut 1 baris / 2 baris (MESTI di atas lubang_x dan lubang_y)
+Saiz_Lubang = adalah_1_baris ? Saiz_Lubang_1_Baris : Saiz_Lubang_2_Baris;
+Anjakan_Lubang_X = adalah_1_baris ? Anjakan_Lubang_X_1_Baris : Anjakan_Lubang_X_2_Baris;
+Anjakan_Lubang_Y = adalah_1_baris ? Anjakan_Lubang_Y_1_Baris : Anjakan_Lubang_Y_2_Baris;
 
 Lebar_Plat = adalah_plat_panjang ? Lebar_Plat_1_Baris : Lebar_Plat_2_Baris;
 Tinggi_Plat = adalah_plat_panjang ? Tinggi_Plat_1_Baris : Tinggi_Plat_2_Baris;
