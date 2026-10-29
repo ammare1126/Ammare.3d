@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ammare.3d · Keychain Custom</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katalog.css">
 </head>
 <body>
 <header><h1>Ammare<span>.3d</span></h1><p>Keychain custom · Batu Pahat</p></header>
@@ -17,12 +18,20 @@
 </nav>
 <main>
 <section id="tempah" class="tab active">
+
+  <div id="katalog">
+    <div class="khead"><b>AMMARE.3D</b><span>Custom 3D printed products</span><p>Pilih produk kegemaran anda</p></div>
+    <div id="cat-grid" class="cgrid"></div>
+  </div>
+
+  <div id="order-view" hidden>
+  <div class="obar"><button id="btn-catalog" type="button">← Katalog</button><h2 id="order-title"></h2></div>
   <div class="card view"><canvas id="c" aria-label="Preview 3D keychain"></canvas></div>
   <p id="status" role="status">⏳ Memuatkan enjin 3D…</p>
   <div id="dl" class="dl"></div>
 
   <div class="card">
-    <label>Produk</label><div id="prod" class="chips"></div>
+    <div id="prod" class="chips" hidden></div>
     <div id="f-nama">
       <label for="text">Nama / teks</label><input id="text" type="text" placeholder="cth: Amir" autocomplete="off">
       <div class="row"><label for="size">Saiz teks</label><output id="sizeout" class="pill">15</output></div>
@@ -48,6 +57,7 @@
     <label for="qty">Kuantiti</label><input id="qty" type="number" min="1" value="1" inputmode="numeric">
     <button id="btn-add" class="btn" type="button">Tambah ke troli</button>
     <p id="add-hint" class="mute" role="alert"></p>
+  </div>
   </div>
 
 </section>
@@ -92,6 +102,7 @@
 
   <div id="cm-v1">
     <ul id="cart"></ul><p id="total" class="mute">Troli kosong.</p>
+    <button id="btn-more" class="btn ghost" type="button">+ Tambah produk lain</button>
     <label for="cname">Nama anda</label><input id="cname" type="text" autocomplete="name">
     <label for="cphone">No. telefon / WhatsApp</label><input id="cphone" type="text" inputmode="tel" autocomplete="tel" placeholder="No. Telefon / WhatsApp">
     <label for="carea">Kawasan / hari COD</label><input id="carea" type="text" placeholder="cth: Parit Raja, Sabtu">
@@ -117,5 +128,6 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 <script src="app.js"></script>
+<script src="katalog.js"></script>
 </body>
 </html>
