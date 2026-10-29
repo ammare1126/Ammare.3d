@@ -28,7 +28,7 @@ const CONFIG = {
     { label: "Keychain No Plate", type: "plate", scad: "NO PLATE.scad", fonts: ["CharlesWright-Bold"],
       params: [
       { key: "Saiz_Teks", label: "Saiz huruf 2 baris", min: 4, max: 12, step: 0.5, value: 9 },
-      { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 10, step: 0.5, value: 8 },
+      { key: "Saiz_Teks_1_Baris", label: "Saiz huruf 1 baris", min: 3, max: 10, step: 0.5, value: 7.5 },
       { key: "Jarak_Baris", label: "Jarak antara baris (mm)", min: 6, max: 14, step: 0.5, value: 11 },
       { key: "Jarak_Huruf", label: "Jarak huruf", min: 0.8, max: 1.5, step: 0.05, value: 1.0 },
       { key: "Lebar_Plat_2_Baris", label: "Lebar plat 2 baris (mm)", min: 35, max: 60, step: 1, value: 45 },
@@ -37,7 +37,6 @@ const CONFIG = {
       { key: "Tinggi_Plat_1_Baris", label: "Tinggi plat 1 baris (mm)", min: 12, max: 25, step: 1, value: 17 },
       { key: "Tebal_Tapak", label: "Tebal tapak (mm)", min: 1.2, max: 4, step: 0.2, value: 2.4 },
       { key: "Tebal_Teks", label: "Tebal teks (mm)", min: 0.8, max: 3, step: 0.2, value: 1.4 },
-      { key: "Saiz_Lubang", label: "Saiz lubang (mm)", min: 2, max: 6, step: 0.2, value: 3 }
       ] }
     // produk baru: salin satu blok produk di atas (fail .scad letak dalam folder wasm)
   ],
@@ -52,6 +51,17 @@ let cur = null, pending = "";
 const P = {};
 const curKey = () => prod.label + JSON.stringify(spec().params);
 const DUA = d => !["Design E", "Design F"].includes(d);
+// Tetapan lubang (mm), asing untuk 2 baris dan 1 baris. Nama mesti sama dengan dalam NO PLATE.scad
+const LUBANG = {
+  Saiz_Lubang_2_Baris: 3, Anjakan_Lubang_X_2_Baris: 0, Anjakan_Lubang_Y_2_Baris: 0,    // Design A - D
+  Saiz_Lubang_1_Baris: 3, Anjakan_Lubang_X_1_Baris: -1, Anjakan_Lubang_Y_1_Baris: 1    // Design E, F
+};
+// Teks 1 baris (Design E, F): kalau terlalu panjang, huruf dikecilkan automatik supaya tak kena lubang / tepi plat.
+const LEBAR_HURUF = 0.66;   // anggaran: lebar 1 huruf = 0.66 x saiz huruf. Kalau masih sempit, naikkan sedikit (cth 0.7)
+function saiz1(teks) {
+  const sz = P.Saiz_Teks_1_Baris ?? 7.5, wmax = (P.Lebar_Plat_1_Baris ?? 55) - 11, n = teks.length || 1;
+  return n * LEBAR_HURUF * sz <= wmax ? sz : Math.max(4, Math.floor((wmax / (n * LEBAR_HURUF)) * 2) / 2);
+}
 function spec() {
   if (prod.type !== "plate") {
     const t = $("#text").value.trim();
@@ -61,7 +71,7 @@ function spec() {
   const d = $("#pl-design").value, top = $("#pl-top").value.trim(), bot = $("#pl-bottom").value.trim(), one = $("#pl-one").value.trim();
   return { scad: prod.scad, t: DUA(d) ? [top, bot].filter(Boolean).join(" / ") : one, ok: DUA(d) ? !!(top || bot) : !!one,
     dz: P.Tebal_Tapak ?? 2.4,
-    params: { Bentuk_Plat: d, Teks_Atas: top, Teks_Bawah: bot, Teks_Satu_Baris: one, Nama_Fon: $("#font").value, Gaya_Teks: "Timbul", ...P } };
+    params: { Bentuk_Plat: d, Teks_Atas: top, Teks_Bawah: bot, Teks_Satu_Baris: one, Nama_Fon: $("#font").value, Gaya_Teks: "Timbul", ...LUBANG, ...P, ...(DUA(d) ? {} : { Saiz_Teks_1_Baris: saiz1(one) }) } };
 }
 function syncLines() { const two = DUA($("#pl-design").value); $("#pl-two").hidden = !two; $("#pl-single").hidden = two; }
 function setProduct() {
@@ -254,7 +264,7 @@ $("#btn-add").onclick = () => {
   if (!s.ok) { hint("Taip nama / teks dulu."); return; }
   if (!cur || cur.key !== curKey()) { hint("Tunggu preview siap dulu (beberapa saat)."); return; }
   if (cart.length >= 8) { hint("Maksimum 8 jenis keychain setiap order."); return; }
-  cart.push({ p: prod.label + (prod.type === "plate" ? " " + s.params.Bentuk_Plat : ""), t, b: sel.base, x: sel.text, q: Math.max(1, +$("#qty").value || 1), f: $("#font").value, s: s.params.text_size ?? s.params.Saiz_Teks, pr: { ...P }, stl: cur });
+  cart.push({ p: prod.label + (prod.type === "plate" ? " " + s.params.Bentuk_Plat : ""), t, b: sel.base, x: sel.text, q: Math.max(1, +$("#qty").value || 1), f: $("#font").value, s: s.params.text_size ?? (DUA(s.params.Bentuk_Plat) ? s.params.Saiz_Teks : s.params.Saiz_Teks_1_Baris), pr: { ...P }, stl: cur });
   hint(""); drawCart();
 };
 
