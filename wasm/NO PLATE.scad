@@ -14,12 +14,12 @@ Bentuk_Plat = "Design A"; // ["Design A": "Design A (Perisai/Trapezoid)", "Desig
 Mod_Baris = "Auto"; // ["Auto": "Ikut Design (A-D: 2 Baris, E-F: 1 Baris)", "1 Baris": "Paksa 1 Baris", "2 Baris": "Paksa 2 Baris"]
 
 // Lebar & Tinggi untuk Plat 2 Baris (Design A - D) - Saiz baru lebih mantap!
-Lebar_Plat_2_Baris = 40; // [35:1:80]
-Tinggi_Plat_2_Baris = 25; // [20:1:50]
+Lebar_Plat_2_Baris = 45; // [35:1:80]
+Tinggi_Plat_2_Baris = 29; // [20:1:50]
 
 // Lebar & Tinggi untuk Plat 1 Baris (Design E & F) - Sebaya keychain "Darling"
-Lebar_Plat_1_Baris = 50; // [45:1:90]
-Tinggi_Plat_1_Baris = 15; // [12:1:35]
+Lebar_Plat_1_Baris = 55; // [45:1:90]
+Tinggi_Plat_1_Baris = 17; // [12:1:35]
 
 
 /* [3. Teks Nombor Plat] */
@@ -30,10 +30,10 @@ Teks_Satu_Baris = "ABC 1234";
 Nama_Fon = "CharlesWright-Bold"; // ["Arial Black:style=Regular", "Arial:style=Bold", "Impact:style=Regular", "Bebas Neue:style=Regular", "Archivo Black:style=Regular", "Agency FB:style=Bold","CharlesWright-Bold"]
 
 // Saiz huruf untuk 2 Baris (Dibesarkan dari 7.5 ke 9.5)
-Saiz_Teks = 7.5; // [4:0.5:18]
+Saiz_Teks = 9 ; // [4:0.5:18]
 
 // Saiz huruf untuk 1 Baris (Dibesarkan dari 5.5 ke 7.5)
-Saiz_Teks_1_Baris = 5.5; // [3:0.5:15]
+Saiz_Teks_1_Baris = 8 ; // [3:0.5:15]
 
 // Jarak antara baris atas dan bawah (Dibesarkan dari 9.0 ke 11.5)
 Jarak_Baris = 9.0; // [5:0.5:25]
