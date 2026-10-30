@@ -2,7 +2,7 @@
 const CONFIG = {
   whatsapp: "60178422719",
   orderApi: "https://ammare-order.ammarahimi02.workers.dev",     // URL Cloudflare Worker (isi lepas siap setup Telegram)
-  sheetApi: "https://script.google.com/macros/s/AKfycbx8Frzf3MZGgJVZISGm5IxbRjn8uxuZWa93f9VtQH-vwmCqHld0LAhcd8rNBoHsvv2z/exec",   // URL Google Apps Script (rekod order ke Google Sheet)
+  sheetApi: "https://script.google.com/macros/s/AKfycbxbAV2M-d-STfXJIG_97mHsThwllw63jUjJY02TgY78yD8SUTMDOigxwYzzCOQ56LN4/exec",   // URL Google Apps Script (rekod order ke Google Sheet)
   price: 5,            // harga seunit (RM)
   priceBulk: 4,        // harga bulk (RM) - perlu disahkan
   bulkQty: 10,         // jumlah minimum untuk harga bulk (dan deposit)
