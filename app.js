@@ -2,6 +2,7 @@
 const CONFIG = {
   whatsapp: "60178422719",
   orderApi: "https://ammare-order.ammarahimi02.workers.dev",     // URL Cloudflare Worker (isi lepas siap setup Telegram)
+  sheetApi: "https://script.google.com/macros/s/AKfycbx8Frzf3MZGgJVZISGm5IxbRjn8uxuZWa93f9VtQH-vwmCqHld0LAhcd8rNBoHsvv2z/exec",   // URL Google Apps Script (rekod order ke Google Sheet)
   price: 5,            // harga seunit (RM)
   priceBulk: 4,        // harga bulk (RM) - perlu disahkan
   bulkQty: 10,         // jumlah minimum untuk harga bulk (dan deposit)
@@ -335,42 +336,27 @@ function confirmOrder() {                       // View 1 -> View 2
   showView(2);
 }
 
+async function sendToSheet(o) {                 // rekod order ke Google Sheet (Apps Script)
+  if (!CONFIG.sheetApi) return { ok: false };
+  try {
+    const items = cart.map((i, k) => `${k + 1}. ${i.p} "${i.t}" | tapak ${i.b}, teks ${i.x} | x${i.q}`).join("\n");
+    const r = await fetch(CONFIG.sheetApi, {     // tanpa header khas = permintaan mudah, jawapan boleh dibaca
+      method: "POST",
+      body: JSON.stringify({ jenis_platform: "WEBSITE", orderId: o.id, nama: o.name, noTel: o.phone, kawasan: o.area, item: items, total: total() })
+    });
+    const j = await r.json();
+    return { ok: j.status === "success" };
+  } catch (e) { console.warn("Sheet:", e); return { ok: false }; }
+}
+
 async function sendOrder() {                    // butang akhir: Hantar Order & Resit
   const o = { id: newOrderId(), name: $("#cname").value.trim(), phone: $("#cphone").value.trim(), area: $("#carea").value.trim() };
   const btn = $("#btn-send"), label = btn.textContent;
   btn.disabled = true; btn.textContent = "⏳ Menghantar…";
-  // (Awak boleh biarkan sendToTelegram asal kalau nak, atau buang kalau guna sistem baru)
-    // await sendToTelegram(o); 
-
-    // --- MULA KOD BARU SISTEM 3-DALAM-1 ---
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbx8Frzf3MZGgJVZISGm5IxbRjn8uxuZWa93f9VtQH-vwmCqHld0LAhcd8rNBoHsvv2z/exec"; 
-
-    const orderData = {
-        jenis_platform: "WEBSITE",
-        orderId: o.id, // Ambil ID yang dah dijana oleh sistem
-        nama: o.name,
-        noTel: o.phone,
-        kawasan: o.area,
-        item: buildMessage(o), // Gabungkan semua item dari fungsi asal
-        total: total() // Ambil nilai total dari troli
-    };
-
-    try {
-        await fetch(appsScriptUrl, {
-            method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-        });
-        console.log("Data berjaya dihantar ke Google Sheets dan Telegram!");
-    } catch (err) {
-        console.error("Gagal hantar data:", err);
-    }
-    // --- TAMAT KOD BARU ---
-
-    // Sambung buka WhatsApp macam biasa
-    const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(buildMessage(o))}`;
-    closeCart();
+  const [tg, sh] = await Promise.all([sendToTelegram(o), sendToSheet(o)]);   // Telegram: mesej+gambar+STL, Sheet: rekod
+  if (!tg.ok || !sh.ok) console.warn("Telegram:", tg.ok, "| Sheet:", sh.ok);
+  const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(buildMessage(o))}`;
+  closeCart();
   if (!window.open(url, "_blank")) location.href = url;   // popup disekat -> buka di tab sama
   cart = []; drawCart();                        // kosongkan troli supaya tak jadi order berganda
   btn.disabled = false; btn.textContent = label;
