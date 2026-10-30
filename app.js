@@ -343,7 +343,7 @@ async function sendOrder() {                    // butang akhir: Hantar Order & 
     // await sendToTelegram(o); 
 
     // --- MULA KOD BARU SISTEM 3-DALAM-1 ---
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbxoQAO2pojiN-IUgfyjlU8nPYlyvOdAs7wM09ol35uLSq726KMISk1wNznpczUfEISv/exec"; 
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbx8Frzf3MZGgJVZISGm5IxbRjn8uxuZWa93f9VtQH-vwmCqHld0LAhcd8rNBoHsvv2z/exec"; 
 
     const orderData = {
         jenis_platform: "WEBSITE",
