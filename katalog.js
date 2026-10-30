@@ -1,9 +1,10 @@
 /* ===== SENARAI KATALOG: tambah produk baru di sini =====
    match = label produk SAMA PERSIS dengan dalam CONFIG.products (app.js)
-   img   = gambar kad (letak dalam folder produk/). Kalau fail tiada, kad tunjuk placeholder. */
+   img   = gambar kad. Kalau fail tiada, kad tunjuk placeholder.
+   Nota: ruang dalam nama fail ditulis %20 */
 const CATALOG = [
-  { match: "Keychain Nama",     img: "produk/nama.jpg",    desc: "Nama anda dalam 3D. Pilih warna dan saiz." },
-  { match: "Keychain No Plate", img: "produk/noplate.jpg", desc: "Plat nombor mini. 6 design, 1 atau 2 baris." }
+  { match: "Keychain Nama",     img: "gallery/Colorful%203D-Printed%20Name%20Keychains.png",    desc: "Nama anda dalam 3D. Pilih warna dan saiz." },
+  { match: "Keychain No Plate", img: "gallery/3D%20Printed%20Keychain%20Tags%20Workspace.png", desc: "Plat nombor mini. 6 design, 1 atau 2 baris." }
 ];
 /* ===== TAMAT ===== */
 
